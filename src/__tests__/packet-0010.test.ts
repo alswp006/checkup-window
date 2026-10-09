@@ -2,8 +2,8 @@ import { describe, it, expect, vi } from "vitest";
 import React from "react";
 import { render, screen, fireEvent, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { generateHapticFeedback } from "@apps-in-toss/web-framework";
 import { mockAll } from "@/__tests__/__helpers__/mocks";
+import { generateHapticFeedback } from "@apps-in-toss/web-framework";
 import { validateProfileForm } from "@/pages/profileForm/validate";
 import ProfileFormFields from "@/pages/profileForm/ProfileFormFields";
 
