@@ -87,7 +87,7 @@ export function evaluateProfile(profile: Profile, records: CheckupRecord[], toda
     age: year - profile.birthYear,
     items,
     eligibleCount: core.filter((i) => i.eligibleThisYear).length,
-    receivedCount: core.filter((i) => i.received).length,
+    receivedCount: core.filter((i) => i.eligibleThisYear && i.received).length,
     daysLeft: daysUntilYearEnd(today),
     nextCheckupYear: nextYears.length > 0 ? Math.min(...nextYears) : null,
   };
