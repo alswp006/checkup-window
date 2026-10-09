@@ -1,0 +1,814 @@
+[
+  {
+    "id": "0001",
+    "title": "TypeScript 타입 + RouteState 계약 정의",
+    "epic": "Epic 1: Data Layer",
+    "task": {
+      "description": "src/lib/types.ts에 SPEC Data Models의 모든 타입을 정의한다. 대상은 Sex·InsuranceType·CheckupItemId(법정 닫힌 집합), CheckupRule, Profile, CheckupRecord, BannerState, ItemStatus, ProfileResult, PlanYear, StoreResult, HomeLocationState, ProfileFormLocationState다. 런타임 코드는 0줄이고 export type/interface만 둔다.",
+      "acceptance_criteria": [
+        "src/lib/types.ts는 type/interface export만 가진다. 값 export(const·function·enum)는 0개이고 `tsc --noEmit`을 통과한다.",
+        "Profile 필드는 id, name, role('self'|'family'), birthYear, sex, insuranceType, createdAt, updatedAt이다. 이름과 타입이 SPEC과 1:1로 일치한다.",
+        "StoreResult = { ok: true } | { ok: false; error: 'STORAGE_FULL'|'FAMILY_LIMIT'|'DUPLICATE_NAME'|'SELF_EXISTS' }, HomeLocationState = { toast: 'saved'|'deleted' } | null, ProfileFormLocationState = { mode: 'self'|'family' } | null을 export한다.",
+        "CheckupItemId 유니온 멤버는 정확히 7개다(general, stomach, colorectal, breast, cervical, liver, lung). ItemStatus·ProfileResult의 필드명(eligibleThisYear, conditional, received, nextYear, reason, eligibleCount, receivedCount, daysLeft, nextCheckupYear)이 SPEC과 일치한다.",
+        "PlanYear = { year: number; items: ItemStatus[] }를 export한다. RS-AC-4용 라우트 state 타입은 위 두 LocationState 유니온만 쓴다."
+      ]
+    },
+    "covers": [
+      "F2-AC-1",
+      "F1-AC-1"
+    ],
+    "files": [
+      "src/lib/types.ts"
+    ],
+    "definition_of_done": [
+      "npm run build(tsc 포함) 통과",
+      "npm test 통과",
+      "grep -nE '#[0-9a-fA-F]{3,8}\\b' src/lib/types.ts 결과 0건",
+      "런타임 코드 0줄"
+    ],
+    "depends_on": [],
+    "db_schema": "type Sex='male'|'female'; type InsuranceType='employee_office'|'employee_nonoffice'|'regional_head'|'dependent'|'medical_aid'; type CheckupItemId='general'|'stomach'|'colorectal'|'breast'|'cervical'|'liver'|'lung'; interface CheckupRule { id; label; cycle:'annual'|'biennial'; minAge:number|null; maxAge:number|null; sex:Sex|null; conditional:boolean; conditionText:string|null; source:string } (상수, 저장 안 함); interface Profile { id; name; role:'self'|'family'; birthYear; sex; insuranceType; createdAt; updatedAt } → localStorage 'checkupWindow.profiles.v1' = { version:1, data: Profile[] }; interface CheckupRecord { profileId; itemId; year; receivedAt } → 'checkupWindow.records.v1' = { version:1, data: CheckupRecord[] }; interface BannerState { dismissedMonth: string|null } → 'checkupWindow.banner.v1'; ItemStatus/ProfileResult/PlanYear는 계산 결과(저장 안 함)",
+    "api_contract": "",
+    "dependencies": [],
+    "ui_requirements": ""
+  },
+  {
+    "id": "0002",
+    "title": "스캐폴드 CSS 정리 + 검수 기준선 + .env.example",
+    "epic": "Epic 1: Data Layer",
+    "task": {
+      "description": "Vite 기본 스타일을 정리한다. src/index.css와 src/App.css에서 HEX 색상, body·#root 기본 레이아웃, font·padding·margin 선언을 지우고 flex/grid 배치만 남긴다. 템플릿 전체 HEX 스캔 결과는 docs/qa/compliance-baseline.md에 적고, 광고 env 키 2개는 .env.example에 둔다. 템플릿 컴포넌트 파일과 main.tsx는 수정하지 않는다.",
+      "acceptance_criteria": [
+        "grep -nE '#[0-9a-fA-F]{3,8}\\b' src/index.css src/App.css 결과가 0건이다.",
+        "src/index.css와 src/App.css에 height|padding|margin|font-size|line-height 선언이 0건이다(TT-AC-1 스캐폴드 부분).",
+        "docs/qa/compliance-baseline.md에 src/** HEX 스캔 명령, 결과(파일:줄 목록 또는 '0건'), 기준선 예외로 둘 템플릿 파일 목록이 있다.",
+        ".env.example에 'VITE_TOSS_AD_GROUP_ID=' 줄과 'VITE_TOSS_AD_SLOT_ID=' 줄이 있고, 값은 비어 있다.",
+        "npm run build가 통과하고 src/main.tsx diff는 0줄이다."
+      ]
+    },
+    "covers": [
+      "F4-AC-8"
+    ],
+    "files": [
+      "src/index.css",
+      "src/App.css",
+      "docs/qa/compliance-baseline.md",
+      ".env.example"
+    ],
+    "definition_of_done": [
+      "npm run build 통과",
+      "npm test 통과",
+      "두 CSS 파일 HEX 0건",
+      "main.tsx 미수정(@AI:ANCHOR)"
+    ],
+    "depends_on": [],
+    "db_schema": "",
+    "api_contract": "",
+    "dependencies": [],
+    "ui_requirements": "커스텀 CSS는 flex/grid 배치만 남긴다. 색상은 var(--adaptive*)만 쓰고 HEX는 쓰지 않는다. TDS 컴포넌트 여백을 덮어쓰는 선언(padding/margin/height/font-size/line-height)은 0건이어야 한다. 다크모드가 깨지지 않도록 body 배경·글자색 하드코딩도 지운다."
+  },
+  {
+    "id": "0003",
+    "title": "검진 기준 상수(rules) + 판정 엔진 evaluateProfile·daysUntilYearEnd",
+    "epic": "Epic 1: Data Layer",
+    "task": {
+      "description": "src/domain/rules.ts에 CheckupRule 7개 상수(SPEC 표 순서 그대로), 가입유형별 일반검진 규칙, 가입유형 라벨·설명, formatRuleLine(출처 문구)을 둔다. src/domain/checkup.ts에는 순수 함수 evaluateProfile(profile, records, today), isEvaluable(birthYear, today), daysUntilYearEnd(today)를 구현한다. 기준값은 rules.ts 밖에 정의하지 않고, 나이는 검진연도 − 출생연도로 계산한다.",
+      "acceptance_criteria": [
+        "F1-AC-1: today=2026-10-10에 1986·male·employee_office를 평가하면 general·stomach는 {eligibleThisYear:true, nextYear:2026}, liver는 {eligibleThisYear:true, conditional:true}, colorectal은 {eligibleThisYear:false, nextYear:2036}이다. eligibleCount=2, age=40이고 items에 breast·cervical은 없다.",
+        "F1-AC-2·3: 1987·male·employee_nonoffice면 general eligible=true다. 1987·office면 general은 {false, 2027, reason:'2027년 대상(홀수년 출생)'}이다. 1966·female·dependent면 general·stomach·colorectal·breast·cervical이 모두 eligible이고 liver·lung은 조건부이며 eligibleCount=5다.",
+        "F1-AC-4·F5-AC-8: 1986 office에 general 2026 기록이 있으면 {received:true, nextYear:2028}이다. 1990 nonoffice에 general 2026 기록이 있으면 nextYear는 2027이다. 1986에서 general·stomach를 모두 받았으면 nextCheckupYear=2028이다. 1985 office에 2025 기록이 있으면 general은 {false, 2027}이고 receivedCount=0이다.",
+        "F1-AC-5·6: daysUntilYearEnd는 2026-10-10이면 82, 12-01이면 30, 12-31 23:59면 0이다. 1960 medical_aid면 general은 {false, null, '대상 연령(19~64세)이 아니에요'}이다. 1950이면 lung의 nextYear는 null이다. 2008 female dependent면 general·cervical의 nextYear는 2028이다.",
+        "F1-AC-7: birthYear가 1919 또는 2027(today 2026)이면 evaluateProfile은 RangeError('INVALID_BIRTH_YEAR')를 던지고, isEvaluable은 던지지 않고 false를 반환한다. rules.test는 다음을 확인한다. ① 규칙 7개의 순서 ② 가입유형 설명 3문구(F3-AC-8) ③ formatRuleLine('stomach') === '위암 검진 · 만 40세 이상 · 2년마다 · 암관리법 시행령 별표1'(F8-AC-4)"
+      ]
+    },
+    "covers": [
+      "F1-AC-1",
+      "F1-AC-2",
+      "F1-AC-3",
+      "F1-AC-4",
+      "F1-AC-5",
+      "F1-AC-6",
+      "F1-AC-7",
+      "F5-AC-8",
+      "F3-AC-8",
+      "F8-AC-4"
+    ],
+    "files": [
+      "src/domain/rules.ts",
+      "src/domain/rules.test.ts",
+      "src/domain/checkup.ts",
+      "src/domain/checkup.test.ts"
+    ],
+    "definition_of_done": [
+      "npm run build 통과",
+      "npm test 통과(vi.setSystemTime 2026-10-10)",
+      "UI·storage import 0건(순수 함수)",
+      "Array.prototype.at·Object.hasOwn·structuredClone 미사용",
+      "자기 파일 HEX 0건"
+    ],
+    "depends_on": [
+      "0001"
+    ],
+    "db_schema": "CheckupRule[] 상수(저장 안 함): general(격년·비사무직 매년·가입유형별 연령: dependent 20~, medical_aid 19~64), stomach(격년 40~), colorectal(매년 50~), breast(격년 40~ female), cervical(격년 20~ female), liver(매년 40~ 조건부: '간경변증, B형간염 항원 양성, C형간염 항체 양성, B형·C형 간염 바이러스에 의한 만성 간질환자'), lung(격년 54~74 조건부: '30갑년 이상 흡연력을 가진 흡연자'). 격년: birthYear % 2 === year % 2",
+    "api_contract": "",
+    "dependencies": [],
+    "ui_requirements": ""
+  },
+  {
+    "id": "0004",
+    "title": "판정 엔진 — buildPlan·evaluateAll·계획표/가족 문구",
+    "epic": "Epic 1: Data Layer",
+    "task": {
+      "description": "src/domain/plan.ts에 순수 함수 buildPlan(profile, records, today, years=3), evaluateAll(profiles, records, today), planLines(plan, profiles), familySummary(result), invalidFamilyLine(name)을 구현한다. evaluateAll은 isEvaluable이 false인 프로필을 결과에서 빼서 invalidIds로 돌려주고, 어떤 입력에도 throw하지 않는다(DV-AC-2). 계획표 줄과 가족 행 문구는 이 파일에서만 만든다.",
+      "acceptance_criteria": [
+        "F1-AC-8: buildPlan(1986·male·office, [], 2026-10-10)은 연도 [2026, 2027, 2028]을 반환한다. 2027의 비조건부 대상은 0개, 2028은 general·stomach다. evaluateAll([], [], today)는 {results:[], invalidIds:[]}를 반환하고 예외가 없다.",
+        "F7-AC-2: 나(1986·male·office)·엄마(1966·female·dependent)·아빠(1963·male·regional_head)로 만든 2027 planLines에 '아빠 — 일반건강검진·위암 검진·대장암 검진'과 '나 — 조건부 간암만'이 있다.",
+        "F7-AC-2: familySummary는 엄마면 '올해 대상 5개', 아빠면 '올해 대상 1개(대장암)'을 반환한다.",
+        "F7-AC-7: 동생(1997·female·dependent)이면 familySummary는 '올해 대상 없음 · 다음 2027년'이다.",
+        "DV-AC-2: birthYear 1900인 프로필이 섞여 있어도 evaluateAll은 throw하지 않는다. 그 프로필은 results에서 빠지고 invalidIds에 id가 들어간다. invalidFamilyLine('엄마') === '엄마 · 출생연도를 확인해주세요'다."
+      ]
+    },
+    "covers": [
+      "F1-AC-8",
+      "F7-AC-2",
+      "F7-AC-7"
+    ],
+    "files": [
+      "src/domain/plan.ts",
+      "src/domain/plan.test.ts"
+    ],
+    "definition_of_done": [
+      "npm run build 통과",
+      "npm test 통과(today 2026-10-10 고정)",
+      "evaluateAll은 try/catch 대신 isEvaluable 사전 판정으로 throw 0",
+      "자기 파일 HEX 0건"
+    ],
+    "depends_on": [
+      "0003"
+    ],
+    "db_schema": "계산 결과만(저장 안 함): PlanYear { year; items: ItemStatus[] }; evaluateAll → { results: ProfileResult[]; invalidIds: string[] }",
+    "api_contract": "",
+    "dependencies": [],
+    "ui_requirements": ""
+  },
+  {
+    "id": "0005",
+    "title": "표시 문구·canToggle·마감 배너 판정 (순수 함수)",
+    "epic": "Epic 1: Data Layer",
+    "task": {
+      "description": "src/domain/format.ts에 itemDescription(status, year), canToggle(status, eligibleCount), heroCaption(result), emptyStateText(result)를 둔다. src/domain/banner.ts에는 bannerView(result, bannerState, today)를 둔다. 반환값은 null | { title, body, urgent, urgentText }다. 화면 패킷은 Switch 렌더 여부를 직접 계산하지 않고 canToggle만 쓴다.",
+      "acceptance_criteria": [
+        "F5-AC-1·3: itemDescription은 받은 general이면 '받았어요 · 다음 대상 2028년', 받지 않은 대상이면 '올해 대상 · 12월 31일까지', 비대상 colorectal이면 '다음 대상 2036년', nextYear가 null이면 reason 문자열을 반환한다.",
+        "CS-AC-1·2: canToggle = eligibleThisYear && !(conditional && eligibleCount === 0)이다. 1985·office의 liver는 false이고 설명은 '조건에 해당하면 올해 대상'이다. 1986·office의 liver는 true다.",
+        "F5-AC-2·F4-AC-3: 비조건부 대상을 모두 받았으면 heroCaption은 '올해 검진 완료 · 다음 검진 2028년', 아니면 'D-82 · 12월 31일까지'다. 1987·female·regional_head의 emptyStateText는 {title:'올해는 받을 국가검진이 없어요', description:'다음 대상: 2027년'}이다.",
+        "F6-AC-1·2·3: 2026-10-10, 1986 office, 기록 0건이면 bannerView는 title '올해 검진 마감까지 D-82', body '남은 검진 2개 · 12월 31일이 지나면 올해 대상에서 넘어가요'를 반환한다. 06-30이면 null, 07-01이면 'D-183', 12-01이면 urgent:true와 urgentText '마감 30일 전이에요'다.",
+        "F6-AC-4·5: 비조건부 대상을 모두 받았거나 eligibleCount가 0이면 null이다. dismissedMonth가 '2026-10'이면 10-10에는 null, 11-01에는 다시 객체를 반환한다."
+      ]
+    },
+    "covers": [
+      "F5-AC-1",
+      "F5-AC-2",
+      "F5-AC-3",
+      "F5-AC-5",
+      "F4-AC-3",
+      "F6-AC-1",
+      "F6-AC-2",
+      "F6-AC-3",
+      "F6-AC-4",
+      "F6-AC-5"
+    ],
+    "files": [
+      "src/domain/format.ts",
+      "src/domain/banner.ts",
+      "src/domain/format.test.ts",
+      "src/domain/banner.test.ts"
+    ],
+    "definition_of_done": [
+      "npm run build 통과",
+      "npm test 통과(vi.setSystemTime 사용)",
+      "React·storage import 0건",
+      "자기 파일 HEX 0건"
+    ],
+    "depends_on": [
+      "0003"
+    ],
+    "db_schema": "BannerState { dismissedMonth: 'YYYY-MM' | null } 입력만 받고 저장은 하지 않음",
+    "api_contract": "",
+    "dependencies": [],
+    "ui_requirements": ""
+  },
+  {
+    "id": "0006",
+    "title": "localStorage 원시 함수 + 읽기 검증기 + newId",
+    "epic": "Epic 2: Storage & State (API Routes 해당 없음)",
+    "task": {
+      "description": "src/data/storage.ts에 readEnvelope(key, validateItem) → { data, recovered }, writeEnvelope(key, data) → StoreResult, readBanner(), newId()를 구현한다. 읽을 때는 {version:1, data:[]} 모양과 항목을 검증한다. 항목 검증은 birthYear 정수 1920~올해, sex·insuranceType·role 허용값이다. 실패하면 원본을 '{key}.corrupt'에 보관하고 recovered:true를 돌려준다. QuotaExceededError는 STORAGE_FULL로 바꾼다.",
+      "acceptance_criteria": [
+        "F2-AC-4: 'checkupWindow.profiles.v1' 값이 '{oops'면 data는 [], 'checkupWindow.profiles.v1.corrupt'에는 '{oops'가 들어가고 recovered는 true다.",
+        "DV-AC-1: birthYear 1900 또는 2099, sex 'x', role 'admin' 중 하나라도 담긴 엔벨로프는 F2-AC-4와 똑같이 손상으로 처리한다.",
+        "F2-AC-5: localStorage.setItem이 QuotaExceededError를 던지면 writeEnvelope는 { ok:false, error:'STORAGE_FULL' }을 반환하고, 기존 저장 문자열은 바이트 단위로 그대로다.",
+        "F6-AC-6: 'checkupWindow.banner.v1'이 파싱 불가면 readBanner()는 { dismissedMonth: null }을 반환한다.",
+        "newId()는 Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8) 형식이다. 1000회 호출해도 중복이 0이고 crypto.randomUUID는 쓰지 않는다."
+      ]
+    },
+    "covers": [
+      "F2-AC-4",
+      "F2-AC-5",
+      "F6-AC-6"
+    ],
+    "files": [
+      "src/data/storage.ts",
+      "src/data/storage.test.ts"
+    ],
+    "definition_of_done": [
+      "npm run build 통과",
+      "npm test 통과",
+      "structuredClone·crypto.randomUUID 0건",
+      "자기 파일 HEX 0건"
+    ],
+    "depends_on": [
+      "0001"
+    ],
+    "db_schema": "'checkupWindow.profiles.v1' = { version:1, data: Profile[] }; 'checkupWindow.records.v1' = { version:1, data: CheckupRecord[] }; 'checkupWindow.banner.v1' = BannerState; 손상 원본 보관 키 '{key}.corrupt'",
+    "api_contract": "",
+    "dependencies": [],
+    "ui_requirements": ""
+  },
+  {
+    "id": "0007",
+    "title": "프로필 CRUD — profileRepo",
+    "epic": "Epic 2: Storage & State (API Routes 해당 없음)",
+    "task": {
+      "description": "src/data/profileRepo.ts에 addProfile(snapshot, input, now), updateProfile(snapshot, id, patch, now), deleteProfile(snapshot, id)를 구현한다. 현재 {profiles, records} 스냅샷을 받아 { result: StoreResult, next }를 돌려주고, 성공할 때만 writeEnvelope로 쓴다. 검증 기준은 role 필드다(self는 1개). 가족은 최대 9명, 이름은 1~10자이고 중복 불가다. 삭제하면 그 profileId의 기록도 함께 지운다.",
+      "acceptance_criteria": [
+        "F2-AC-1: 빈 저장소에서 addProfile({name:'나', role:'self', birthYear:1986, sex:'male', insuranceType:'employee_office'})를 호출하면 { ok:true }를 반환한다. profiles.v1에는 비어 있지 않은 id와 ISO createdAt·updatedAt을 가진 프로필 1개가 저장된다.",
+        "F2-AC-3: self가 이미 있을 때 role 'self'로 추가하면 { ok:false, error:'SELF_EXISTS' }를 반환하고 profiles 길이는 1로 남는다.",
+        "F2-AC-6: 가족이 9명이면 10번째 family 추가는 'FAMILY_LIMIT'이다. '엄마'가 있을 때 '엄마'를 또 추가하거나 다른 프로필 이름을 '엄마'로 바꾸면 'DUPLICATE_NAME'이다.",
+        "F2-AC-5: setItem이 QuotaExceededError를 던지면 'STORAGE_FULL'을 반환하고, next는 입력 스냅샷과 같으며 저장값도 그대로다.",
+        "F2-AC-8: 엄마 기록이 3건 있을 때 deleteProfile(엄마.id)를 호출하면 엄마 기록은 0건이 되고 다른 프로필의 기록 수는 그대로다."
+      ]
+    },
+    "covers": [
+      "F2-AC-1",
+      "F2-AC-3",
+      "F2-AC-5",
+      "F2-AC-6",
+      "F2-AC-8"
+    ],
+    "files": [
+      "src/data/profileRepo.ts",
+      "src/data/profileRepo.test.ts"
+    ],
+    "definition_of_done": [
+      "npm run build 통과",
+      "npm test 통과",
+      "입력 스냅샷 불변(새 배열 반환)",
+      "자기 파일 HEX 0건"
+    ],
+    "depends_on": [
+      "0006"
+    ],
+    "db_schema": "Profile → 'checkupWindow.profiles.v1' { version:1, data: Profile[] } (최대 10개: self 1 + family 9); 삭제 시 'checkupWindow.records.v1'에서 profileId 일치 기록 제거",
+    "api_contract": "",
+    "dependencies": [],
+    "ui_requirements": ""
+  },
+  {
+    "id": "0008",
+    "title": "수검 기록 토글·배너 닫기·전체 초기화 — recordRepo",
+    "epic": "Epic 2: Storage & State (API Routes 해당 없음)",
+    "task": {
+      "description": "src/data/recordRepo.ts에 toggleRecord(snapshot, profileId, itemId, year, now), pruneRecords(records, thisYear), dismissBanner(month), resetAll()을 구현한다. pruneRecords는 year < 올해−5인 기록을 지운다. 쓰기는 결과값을 반환하고, 실패하면 기존 값을 그대로 둔다. resetAll은 키 3개를 지우고 removeItem 예외를 { ok:false }로 바꾼다. throw하지 않고 console.error도 남기지 않는다.",
+      "acceptance_criteria": [
+        "F2-AC-2: toggleRecord(id, 'general', 2026)을 1회 호출하면 records가 1건 늘고, 같은 인자로 다시 호출하면 그 1건이 지워져 0건이다. (profileId, itemId, year) 조합은 항상 유일하다.",
+        "pruneRecords(records, 2026)은 year 2020 기록을 지우고 2021 기록은 남긴다. toggleRecord가 저장할 때 이 정리를 적용한다.",
+        "F6-AC-5: dismissBanner('2026-10')을 호출하면 'checkupWindow.banner.v1'에 { dismissedMonth:'2026-10' }이 저장되고 { ok:true }를 반환한다.",
+        "F8-AC-6: resetAll()을 호출하면 profiles.v1, records.v1, banner.v1 세 키가 localStorage에서 없어진다.",
+        "F8-AC-7: removeItem이 예외를 던지면 resetAll()은 { ok:false }를 반환하고, throw와 console.error 호출은 0회다."
+      ]
+    },
+    "covers": [
+      "F2-AC-2",
+      "F6-AC-5",
+      "F8-AC-6",
+      "F8-AC-7"
+    ],
+    "files": [
+      "src/data/recordRepo.ts",
+      "src/data/recordRepo.test.ts"
+    ],
+    "definition_of_done": [
+      "npm run build 통과",
+      "npm test 통과",
+      "자기 파일 HEX 0건"
+    ],
+    "depends_on": [
+      "0006"
+    ],
+    "db_schema": "CheckupRecord → 'checkupWindow.records.v1' { version:1, data: CheckupRecord[] } (유일키 profileId+itemId+year, 올해−5 미만 정리); BannerState → 'checkupWindow.banner.v1'",
+    "api_contract": "",
+    "dependencies": [],
+    "ui_requirements": ""
+  },
+  {
+    "id": "0009",
+    "title": "상태 관리 — CheckupStoreProvider·useCheckupStore",
+    "epic": "Epic 2: Storage & State (API Routes 해당 없음)",
+    "task": {
+      "description": "src/data/CheckupStoreProvider.tsx와 useCheckupStore.ts는 React Context로 { status, profiles, records, banner, recovered }와 액션 addProfile·updateProfile·deleteProfile·toggleRecord·dismissBanner·resetAll을 제공한다. 첫 읽기는 useEffect에서 하므로 첫 렌더는 항상 'loading'이다. 액션 결과가 실패면 메모리 상태를 바꾸지 않는다. src/test/renderWithProviders.tsx는 MemoryRouter와 Provider로 감싸는 테스트 헬퍼다.",
+      "acceptance_criteria": [
+        "F2-AC-7: 첫 렌더에서 useCheckupStore().status는 'loading'이고, 읽기가 끝나면 'ready'다. 저장값이 없으면 profiles=[], records=[]다.",
+        "F2-AC-4·DV-AC-1: 손상되었거나 범위 밖 birthYear가 저장된 상태로 마운트하면 status 'ready', profiles [], recovered true다.",
+        "F2-AC-5: setItem이 QuotaExceededError를 던질 때 addProfile은 { ok:false, error:'STORAGE_FULL' }을 반환하고, 렌더된 profiles 배열 길이는 그대로다.",
+        "Provider 밖에서 useCheckupStore를 호출하면 Error('useCheckupStore must be used within CheckupStoreProvider')를 던진다.",
+        "renderWithProviders(ui, { route, state, storage })로 초기 경로·location.state·localStorage 시드를 줄 수 있고, 다른 패킷 테스트가 이 헬퍼를 import해서 쓴다."
+      ]
+    },
+    "covers": [
+      "F2-AC-4",
+      "F2-AC-5",
+      "F2-AC-7"
+    ],
+    "files": [
+      "src/data/CheckupStoreProvider.tsx",
+      "src/data/useCheckupStore.ts",
+      "src/data/CheckupStoreProvider.test.tsx",
+      "src/test/renderWithProviders.tsx"
+    ],
+    "definition_of_done": [
+      "npm run build 통과",
+      "npm test 통과",
+      "UI 렌더 없음(Provider는 children만 렌더)",
+      "자기 파일 HEX 0건"
+    ],
+    "depends_on": [
+      "0007",
+      "0008"
+    ],
+    "db_schema": "메모리 상태: { status:'loading'|'ready'; profiles: Profile[]; records: CheckupRecord[]; banner: BannerState; recovered: boolean } — 영속은 0006~0008 repo를 통해서만",
+    "api_contract": "",
+    "dependencies": [],
+    "ui_requirements": ""
+  },
+  {
+    "id": "0010",
+    "title": "프로필 폼 본문 — ProfileFormFields + validate",
+    "epic": "Epic 3: UI Pages",
+    "task": {
+      "description": "핵심 여정(입력). src/pages/profileForm/validate.ts에 validateProfileForm(values, ctx)를 둔다. ctx는 { thisYear, existingNames, familyCount, mode }이고 필드별 에러 문구를 돌려주는 순수 함수다. ProfileFormFields.tsx는 이름·출생연도 TextField, 성별 Chip, 가입유형 ListRow 5개로 된 controlled 컴포넌트이며 라우팅과 저장소에 의존하지 않는다.",
+      "acceptance_criteria": [
+        "F3-AC-2: 출생연도 '198'이면 '출생연도 4자리를 입력해주세요', '1919'나 '2027'(올해 2026)이면 '1920~2026년 사이로 입력해주세요'를 반환한다.",
+        "F3-AC-3·4: 성별이 없으면 '성별을 선택해주세요', 가입유형이 없으면 '가입 유형을 선택해주세요', 이름이 비면 '이름을 입력해주세요'다. existingNames에 '엄마'가 있는데 '엄마'를 내면 '이미 같은 이름의 프로필이 있어요'다. mode가 family이고 familyCount 9면 '가족은 최대 9명까지 추가할 수 있어요'다.",
+        "F3-AC-5: 출생연도 TextField는 inputMode='numeric', maxLength=4로 렌더된다. '19a8'을 입력하면 onChange 값은 '198'이고, Enter를 누르면 input이 blur된다(document.activeElement가 바뀜).",
+        "F3-AC-8: 가입유형 ListRow는 5개다. 설명은 '직장가입자(비사무직)'이 '매년 검진 대상이에요', '피부양자·세대원'이 '만 20세 이상부터 대상이에요', '의료급여수급권자'가 '만 19~64세가 대상이에요'다.",
+        "ChipItem과 가입유형 ListRow를 선택하면 generateHapticFeedback({ type:'tickWeak' })이 1회 호출되고 선택 표시가 바뀐다."
+      ]
+    },
+    "covers": [
+      "F3-AC-2",
+      "F3-AC-3",
+      "F3-AC-4",
+      "F3-AC-5",
+      "F3-AC-8"
+    ],
+    "files": [
+      "src/pages/profileForm/validate.ts",
+      "src/pages/profileForm/validate.test.ts",
+      "src/pages/profileForm/ProfileFormFields.tsx",
+      "src/pages/profileForm/ProfileFormFields.test.tsx"
+    ],
+    "definition_of_done": [
+      "npm run build 통과",
+      "npm test 통과",
+      "TDS 외 UI 라이브러리 0건, 인라인 padding/margin 0건",
+      "자기 파일 HEX 0건"
+    ],
+    "depends_on": [
+      "0003"
+    ],
+    "db_schema": "",
+    "api_contract": "",
+    "dependencies": [],
+    "ui_requirements": "Screen: 프로필 입력·수정 S2 — 폼 본문(Top/Footer는 0011이 그린다).\nTDS: TextField, Paragraph, Spacing, Chip, ChipItem, ListRow, Asset(체크 아이콘, 이모지 금지)\nLayout:\n<TextField label='이름' value={name} maxLength={10} hasError={!!errors.name} help={errors.name} />\n<Spacing size={12} />\n<TextField label='출생연도' inputMode='numeric' maxLength={4} placeholder='예: 1990' value={birthYear} onChange={숫자만 남김} onKeyDown={Enter→blur} hasError help={errors.birthYear} />\n<Spacing size={20} />\n<Paragraph.Text typography='t6'>성별</Paragraph.Text><Spacing size={8} />\n<Chip><ChipItem selected={sex==='male'}>남성</ChipItem><ChipItem selected={sex==='female'}>여성</ChipItem></Chip>\n{errors.sex && <Paragraph.Text typography='t7' color='var(--adaptiveRed500)'>{errors.sex}</Paragraph.Text>}\n<Spacing size={20} />\n<Paragraph.Text typography='t6'>가입 유형</Paragraph.Text>\n{INSURANCE_TYPES.map(t => <ListRow onClick={select} contents={<ListRow.Texts type='2RowTypeA' top={t.label} bottom={t.description} />} right={selected ? 체크 아이콘 : null} />)}\n가입유형 라벨: 직장가입자(사무직)·직장가입자(비사무직)·지역가입자 세대주·피부양자·세대원·의료급여수급권자. 라벨과 설명은 rules.ts에서만 가져온다.\n상태: 에러는 TextField hasError/help로 표시한다. 모든 터치 요소는 44px 이상(TDS 기본 높이를 쓰고 height는 덮어쓰지 않는다)."
+  },
+  {
+    "id": "0011",
+    "title": "프로필 입력·수정 화면 — ProfileForm + DeleteProfileButton",
+    "epic": "Epic 3: UI Pages",
+    "task": {
+      "description": "핵심 여정(입력). src/pages/ProfileForm.tsx가 /profile/new와 /profile/:profileId/edit를 처리한다(파이프라인 규칙상 Page 접미사 없음). location.state를 파싱하고, 모양이 틀리면 null로 본다. 그다음 모드를 정하고 ProfileFormFields와 SubmitFooter로 저장한 뒤 홈으로 이동한다. DeleteProfileButton.tsx는 가족 수정 모드 전용 삭제 Button과 AlertDialog이며 콜백만 받는다.",
+      "acceptance_criteria": [
+        "F3-AC-1: state {mode:'self'}인 /profile/new에서 '나'·'1986'·남성·직장가입자(사무직)을 고르고 '결과 보기'를 누르면 role 'self' 프로필이 저장되고 navigate('/', {replace:true, state:{toast:'saved'}})가 호출된다. logClick('profile_submit')은 1회, haptic은 success다.",
+        "F3-AC-6·RS-AC-3: /profile/{엄마.id}/edit에서는 '엄마'·'1966'·여성·선택된 유형이 미리 채워진다. 없는 id나 빈 id면 navigate('/', {replace:true})다. status가 'loading'인 동안은 Loader만 보인다.",
+        "F3-AC-7: addProfile이 STORAGE_FULL을 반환하면 Toast '저장 공간이 부족해 저장하지 못했어요'를 띄우고 이동하지 않으며 입력값은 유지된다.",
+        "F8-AC-2·3: 가족 수정 화면에서 '삭제'를 누르면 AlertDialog '엄마 프로필을 삭제할까요? 체크 기록도 함께 지워져요'가 뜬다. '삭제'를 누르면 deleteProfile 후 navigate('/', {replace:true, state:{toast:'deleted'}})이고 logClick('profile_delete')가 기록된다. '닫기'를 누르면 아무것도 바뀌지 않는다. self 수정 화면에는 삭제 Button이 0개다.",
+        "RS-AC-2·4: state 없이 직접 진입하거나 state가 {mode:1}이면 크래시 없이 self 유무로 모드를 추론한다. 부제목은 self 없으면 '내 정보 입력', 있으면 '가족 추가', 수정이면 '정보 수정'이다. F8-AC-1: 수정 저장 버튼 라벨은 '저장'이다."
+      ]
+    },
+    "covers": [
+      "F3-AC-1",
+      "F3-AC-4",
+      "F3-AC-6",
+      "F3-AC-7",
+      "F8-AC-1",
+      "F8-AC-2",
+      "F8-AC-3"
+    ],
+    "files": [
+      "src/pages/ProfileForm.tsx",
+      "src/pages/ProfileForm.test.tsx",
+      "src/pages/profileForm/DeleteProfileButton.tsx",
+      "src/pages/profileForm/DeleteProfileButton.test.tsx"
+    ],
+    "definition_of_done": [
+      "npm run build 통과",
+      "npm test 통과(renderWithProviders 사용)",
+      "navigate state는 ProfileFormLocationState/HomeLocationState 타입만 사용",
+      "자기 파일 HEX 0건"
+    ],
+    "depends_on": [
+      "0009",
+      "0010"
+    ],
+    "db_schema": "",
+    "api_contract": "",
+    "dependencies": [],
+    "ui_requirements": "Screen: 프로필 입력·수정 (/profile/new, /profile/:profileId/edit, S2)\nPattern: Form + 하단 고정 SubmitFooter\nTDS: ScreenScaffold, Top, Paragraph, Spacing, Button, AlertDialog, Toast(useToast), Loader + 템플릿 SubmitFooter + ProfileFormFields(0010)\nLayout:\n<ScreenScaffold>\n<Top title={<Top.TitleParagraph>올해검진</Top.TitleParagraph>} />\n<Paragraph.Text typography='t5'>{'내 정보 입력' | '가족 추가' | '정보 수정'}</Paragraph.Text>\n<Spacing size={16} />\n<ProfileFormFields ... />\n{mode==='edit' && profile.role==='family' && <><Spacing size={24} /><DeleteProfileButton name={profile.name} onConfirm={...} /></>}\n<Spacing size={96} />\n<SubmitFooter label={isEdit ? '저장' : '결과 보기'} disabled={familyLimitReached} onClick={submit} />\n</ScreenScaffold>\nDeleteProfileButton: <Button color='danger' variant='weak' display='block'>삭제</Button> → AlertDialog title='{name} 프로필을 삭제할까요?' description='체크 기록도 함께 지워져요', 왼쪽 '닫기'(취소 금지)와 오른쪽 '삭제'.\n상태: Loading(수정 모드에서 status 'loading')이면 Top과 Loader만 그린다. 에러는 필드 help 문구와 Toast로 알린다. 가족 한도에 걸리면 SubmitFooter를 비활성화하고 '가족은 최대 9명까지 추가할 수 있어요'를 표시한다.\n키보드: SubmitFooter는 템플릿 기본 동작대로 키보드 위에 고정한다. 하단 고정 요소는 safe-area를 템플릿이 처리한다.\n햅틱: '결과 보기'·'저장'은 success, 삭제 확인은 tickWeak."
+  },
+  {
+    "id": "0012",
+    "title": "홈 부트스트랩 훅 — useHomeBootstrap",
+    "epic": "Epic 3: UI Pages",
+    "task": {
+      "description": "핵심 여정(결과). src/pages/home/useHomeBootstrap.ts는 홈의 로딩·리다이렉트·토스트·결과 계산을 맡는 훅이다. store status, self 유무, location.state 파싱(모양이 틀리면 null), evaluateAll 결과와 invalidIds를 묶어 { phase:'loading'|'redirect'|'ready', self, selfResult, family, familyResults, invalidFamily, plan } 형태로 돌려준다. 렌더는 Home.tsx가 한다.",
+      "acceptance_criteria": [
+        "F4-AC-4: status가 'loading'이면 phase는 'loading'이고 navigate 호출은 0회다.",
+        "F4-AC-5: status가 'ready'이고 self가 없으면 navigate('/profile/new', {replace:true, state:{mode:'self'}})를 1회 호출한다.",
+        "F4-AC-6·RS-AC-4: state {toast:'saved'}면 Toast '저장했어요', {toast:'deleted'}면 '삭제했어요'를 1회 띄운 뒤 navigate('.', {replace:true, state:null})를 호출한다. {toast:'xyz'}나 state 없음이면 토스트 0회이고 크래시가 없다.",
+        "F2-AC-4: recovered가 true면 Toast '저장된 정보를 불러오지 못해 새로 시작해요'를 마운트당 1회 띄운다.",
+        "DV-AC-2: mock으로 birthYear 1900인 self가 store에 들어오면 throw 없이 navigate('/profile/{id}/edit', {replace:true})를 호출한다. 같은 상태의 가족은 invalidFamily에 이름과 함께 남는다."
+      ]
+    },
+    "covers": [
+      "F4-AC-4",
+      "F4-AC-5",
+      "F4-AC-6",
+      "F2-AC-4"
+    ],
+    "files": [
+      "src/pages/home/useHomeBootstrap.ts",
+      "src/pages/home/useHomeBootstrap.test.tsx"
+    ],
+    "definition_of_done": [
+      "npm run build 통과",
+      "npm test 통과(renderHook + renderWithProviders, today 2026-10-10)",
+      "today는 new Date()로 계산해 domain 함수에 넘긴다",
+      "자기 파일 HEX 0건"
+    ],
+    "depends_on": [
+      "0004",
+      "0009"
+    ],
+    "db_schema": "",
+    "api_contract": "",
+    "dependencies": [],
+    "ui_requirements": "렌더 없음. Toast는 TDS useToast의 openToast로 띄운다(문구: '저장했어요', '삭제했어요', '저장된 정보를 불러오지 못해 새로 시작해요'). 같은 토스트를 중복으로 띄우지 않도록 ref로 1회만 보장한다."
+  },
+  {
+    "id": "0013",
+    "title": "검진 항목 행 — CheckupItemRow (Switch·조건부 시트)",
+    "epic": "Epic 3: UI Pages",
+    "task": {
+      "description": "핵심 여정(결과). src/components/home/CheckupItemRow.tsx는 검진 항목 하나를 ListRow로 그린다. Switch를 그릴지와 설명 문구는 domain/format의 canToggle·itemDescription만 써서 정한다. Switch를 토글하면 toggleRecord를 호출하고 실패하면 되돌린다. 조건부 항목은 행 전체를 탭하면 조건 BottomSheet가 열린다. 본인 화면과 가족 시트가 이 컴포넌트를 함께 쓴다.",
+      "acceptance_criteria": [
+        "F5-AC-1: 1986 office의 general Switch를 ON하면 toggleRecord(selfId, 'general', 2026)를 호출한다. 설명은 '받았어요 · 다음 대상 2028년'으로 바뀌고 logClick('checkup_received_toggle')은 1회, haptic은 tickWeak다.",
+        "F5-AC-4: toggleRecord가 {ok:false, error:'STORAGE_FULL'}을 반환하면 Switch가 이전 checked로 돌아가고 Toast '저장하지 못했어요. 다시 시도해주세요'를 띄운다.",
+        "F5-AC-5·CS-AC-1·2: canToggle이 false인 행(비대상, 또는 eligibleCount 0일 때의 조건부)에는 Switch가 0개다. 1986 office의 liver 행에는 Switch가 1개다.",
+        "F5-AC-6: 처음 ON할 때만 requestReviewOnce()를 1회 호출한다. 이후 ON/OFF를 반복해도 추가 호출은 템플릿 1회 보장에 따른다.",
+        "F4-AC-7·TT-AC-3: liver 행은 ListRow 전체가 onClick 영역이다(Badge만이 아님). 탭하면 BottomSheet에 조건 문구 전문과 '출처: 암관리법 시행령 별표1'이 보인다. Switch 탭은 stopPropagation으로 시트를 열지 않는다."
+      ]
+    },
+    "covers": [
+      "F5-AC-1",
+      "F5-AC-3",
+      "F5-AC-4",
+      "F5-AC-5",
+      "F5-AC-6",
+      "F4-AC-7"
+    ],
+    "files": [
+      "src/components/home/CheckupItemRow.tsx",
+      "src/components/home/CheckupItemRow.test.tsx"
+    ],
+    "definition_of_done": [
+      "npm run build 통과",
+      "npm test 통과",
+      "Switch 여부를 컴포넌트 안에서 직접 계산하지 않음(canToggle만 사용)",
+      "자기 파일 HEX 0건"
+    ],
+    "depends_on": [
+      "0005",
+      "0009"
+    ],
+    "db_schema": "",
+    "api_contract": "",
+    "dependencies": [],
+    "ui_requirements": "Blueprint S1-a 항목 행 부분:\n<ListRow data-testid={'checkup-item-' + i.itemId} onClick={i.conditional ? openConditionSheet : undefined}\n  contents={<ListRow.Texts type='2RowTypeA' top={i.label} bottom={itemDescription(i, year)} />}\n  right={<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>\n    {i.conditional && <Badge size='small' variant='weak' color='elephant'>조건부</Badge>}\n    {canToggle(i, eligibleCount) && <Switch checked={i.received} onChange={toggle} />}  {/* onClick stopPropagation */}\n  </div>} />\n설명 문구 예: '받았어요 · 다음 대상 2028년' | '올해 대상 · 12월 31일까지' | '다음 대상 2036년' | reason | '조건에 해당하면 올해 대상'\n조건 시트(S1-c): <BottomSheet open header={<BottomSheet.Header>{label}</BottomSheet.Header>}><Paragraph.Text typography='t6'>{conditionText}</Paragraph.Text><Spacing size={8} /><Paragraph.Text typography='t7' color='var(--adaptiveGrey600)'>출처: {source}</Paragraph.Text><Spacing size={16} /><Button display='block' variant='weak' onClick={close}>닫기</Button></BottomSheet>\n오류: 저장에 실패하면 Switch를 되돌리고 openToast('저장하지 못했어요. 다시 시도해주세요')를 띄운다. 터치 영역은 ListRow·Switch TDS 기본값(44px 이상)을 쓰고 height는 덮어쓰지 않는다."
+  },
+  {
+    "id": "0014",
+    "title": "무료 층 — FreeTier (히어로·체크리스트·빈 상태·고지·공유)",
+    "epic": "Epic 3: UI Pages",
+    "task": {
+      "description": "핵심 여정(결과). src/components/home/FreeTier.tsx는 본인 결과 블록이다. 이 블록만으로 앱의 목적이 달성된다. 구성은 data-testid='free-tier' 래퍼, SummaryHero(CountUp·D-day·MiniBar) 또는 빈 상태, 항목 Card(CheckupItemRow), 공단 고지 문구, 결과 공유 Button이다. 광고 상태와 무관하게 항상 렌더한다. 배치는 Home.tsx가 한다.",
+      "acceptance_criteria": [
+        "F4-AC-1·2: 2026-10-10, 1986·male·office면 free-tier에 checkup-item-general·stomach·liver가 있고 liver에만 Badge '조건부'가 붙는다. summary-hero에는 '올해 대상 2개'(CountUp 2), 'D-82', MiniBar 0/2가 있다. colorectal 행 설명은 '다음 대상 2036년'이다.",
+        "F4-AC-3·CS-AC-1: 1987·female·regional_head 또는 1985·male·office면 Asset.ContentIcon과 '올해는 받을 국가검진이 없어요', '다음 대상: 2027년'이 보인다. Switch는 0개, 'D-' 문구도 0건이다. 1985의 liver 행은 Badge '조건부'를 달고 남아 있다.",
+        "F5-AC-2·3: general과 stomach를 ON하면 히어로 문구가 '올해 검진 완료 · 다음 검진 2028년'이 된다. general을 다시 OFF하면 MiniBar는 1/2로, 해당 행 설명은 '올해 대상 · 12월 31일까지'로 돌아간다.",
+        "F4-AC-7·F5-AC-7: 고지 '정확한 대상 여부는 국민건강보험공단 안내를 확인하세요'는 빈 상태에서도 항상 보인다. '결과 공유하기'를 탭하면 shareApp()이 1회 호출되고 logClick('share_result')가 기록된다.",
+        "F7-AC-1·CS-AC-2: free-tier는 TossRewardAd를 import하지 않는다. 마운트하면 logImpression('result_free_tier')를 1회 기록한다. 1986이면 Switch는 general·stomach·liver 3개다."
+      ]
+    },
+    "covers": [
+      "F4-AC-1",
+      "F4-AC-2",
+      "F4-AC-3",
+      "F4-AC-7",
+      "F5-AC-1",
+      "F5-AC-2",
+      "F5-AC-3",
+      "F5-AC-5",
+      "F5-AC-7",
+      "F5-AC-8",
+      "F7-AC-1"
+    ],
+    "files": [
+      "src/components/home/FreeTier.tsx",
+      "src/components/home/FreeTier.test.tsx"
+    ],
+    "definition_of_done": [
+      "npm run build 통과",
+      "npm test 통과(today 2026-10-10)",
+      "TossRewardAd import 0건",
+      "자기 파일 HEX 0건"
+    ],
+    "depends_on": [
+      "0005",
+      "0013"
+    ],
+    "db_schema": "",
+    "api_contract": "",
+    "dependencies": [],
+    "ui_requirements": "Blueprint S1-a 무료 층(Pattern: PageShell + StatusPanel Hero Summary Card):\n<div data-testid='free-tier'>   {/* TossRewardAd 바깥 */}\n  {eligibleCount === 0\n    ? <EmptyState(Asset.ContentIcon + title) title='올해는 받을 국가검진이 없어요' description={'다음 대상: ' + nextCheckupYear + '년'} />\n    : <div data-testid='summary-hero'>\n        <SummaryHero label='올해 받을 국가검진'\n          value={<>올해 대상 <Amount value={eligibleCount} unit='개' typography='t1' /></>}   // CountUp\n          caption={heroCaption(result)} />   // 'D-82 · 12월 31일까지' | '올해 검진 완료 · 다음 검진 2028년'\n        <MiniBar value={receivedCount} max={eligibleCount} />\n      </div>}\n  <Spacing size={16} />\n  <Card>{items.map(i => <CheckupItemRow status={i} profileId={selfId} eligibleCount={eligibleCount} />)}</Card>\n  <Spacing size={12} />\n  <Paragraph.Text typography='t7' color='var(--adaptiveGrey600)'>정확한 대상 여부는 국민건강보험공단 안내를 확인하세요</Paragraph.Text>\n  <Spacing size={16} />\n  <Button variant='weak' size='large' display='block' onClick={share}>결과 공유하기</Button>\n</div>\n상태: 빈 상태(대상 0개)면 EmptyState를 쓰고 Switch는 0개, D-day는 표시하지 않는다. 로딩은 Home.tsx가 처리한다.\n인터랙션: 공유는 tickWeak + shareApp() + logClick('share_result')."
+  },
+  {
+    "id": "0015",
+    "title": "하반기 마감 배너 — DeadlineBanner",
+    "epic": "Epic 3: UI Pages",
+    "task": {
+      "description": "핵심 여정(행동 유도). src/components/home/DeadlineBanner.tsx는 bannerView(result, banner, today) 결과만 렌더한다. 7~12월에 본인에게 아직 받지 않은 비조건부 대상이 있을 때만 보인다. 30일 이내면 Badge '마감 임박'을 붙이고, '닫기'를 누르면 dismissBanner로 이번 달 동안 숨긴다. status가 'loading'이면 렌더하지 않는다.",
+      "acceptance_criteria": [
+        "F6-AC-1: 2026-10-10, 1986 office, 기록 0건이면 data-testid='deadline-banner'에 '올해 검진 마감까지 D-82'와 '남은 검진 2개 · 12월 31일이 지나면 올해 대상에서 넘어가요'가 보이고 logImpression('deadline_banner')가 1회 기록된다.",
+        "F6-AC-2·3: 2026-06-30이면 배너는 0개, 07-01이면 'D-183'이다. 12-01이면 Badge '마감 임박'과 '마감 30일 전이에요'가 보인다.",
+        "F6-AC-4·CS-AC-1: general·stomach가 모두 ON이면 배너는 즉시 0개가 된다. 1985 office(대상 0개)면 처음부터 0개다.",
+        "F6-AC-5: '닫기'를 탭하면 dismissBanner('2026-10')이 호출되고 배너가 사라진다. today가 2026-11-01이면 다시 보인다.",
+        "F6-AC-6: status가 'loading'이면 렌더하지 않는다. banner 값이 손상돼 dismissedMonth가 null이면 정상 표시한다."
+      ]
+    },
+    "covers": [
+      "F6-AC-1",
+      "F6-AC-2",
+      "F6-AC-3",
+      "F6-AC-4",
+      "F6-AC-5",
+      "F6-AC-6"
+    ],
+    "files": [
+      "src/components/home/DeadlineBanner.tsx",
+      "src/components/home/DeadlineBanner.test.tsx"
+    ],
+    "definition_of_done": [
+      "npm run build 통과",
+      "npm test 통과(vi.setSystemTime으로 날짜별 검증)",
+      "노출 판정은 bannerView만 사용",
+      "자기 파일 HEX 0건"
+    ],
+    "depends_on": [
+      "0005",
+      "0009"
+    ],
+    "db_schema": "",
+    "api_contract": "",
+    "dependencies": [],
+    "ui_requirements": "Blueprint S1-a 마감 배너:\n{view && (   // 7/1~12/31 · 비조건부 미수검 ≥1 · dismissedMonth ≠ 이번 달 · status 'ready'\n  <Card data-testid='deadline-banner'>\n    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>\n      <Paragraph.Text typography='t5'>{view.title}</Paragraph.Text>   // '올해 검진 마감까지 D-82'\n      {view.urgent && <Badge size='small' variant='fill' color='red'>마감 임박</Badge>}\n    </div>\n    <Spacing size={4} />\n    <Paragraph.Text typography='t7' color='var(--adaptiveGrey600)'>{view.body}</Paragraph.Text>\n    {view.urgent && <><Spacing size={4} /><Paragraph.Text typography='t7'>{view.urgentText}</Paragraph.Text></>}\n    <Spacing size={8} />\n    <Button size='small' variant='weak' color='dark' onClick={dismiss}>닫기</Button>\n  </Card>\n)}\n인터랙션: '닫기'는 tickWeak 후 { dismissedMonth: 'YYYY-MM' }을 저장하고 즉시 숨긴다. 노출 로그 logImpression('deadline_banner')는 마운트당 1회다."
+  },
+  {
+    "id": "0016",
+    "title": "잠금 층 — LockedTier(3개년 계획·가족 결과) + FamilyTeaser + FamilyChecklistSheet",
+    "epic": "Epic 3: UI Pages",
+    "task": {
+      "description": "결과의 더 깊은 층이다. LockedTier.tsx는 리워드 게이트 안에 들어갈 data-testid='locked-tier' 블록이다. plan-year Card 3장, 가족별 올해 결과 행, '가족 추가' Button으로 구성한다. FamilyTeaser.tsx는 게이트 밖 가족 이름 줄이다. FamilyChecklistSheet.tsx는 가족 한 명의 항목을 CheckupItemRow로 보여 주는 BottomSheet다. 게이트로 감싸는 일은 Home.tsx가 한다.",
+      "acceptance_criteria": [
+        "F7-AC-2: 나·엄마·아빠 시드로 plan-year-2026·2027·2028 Card 3장이 렌더된다. 2027에는 '아빠 — 일반건강검진·위암 검진·대장암 검진'과 '나 — 조건부 간암만'이 있다. 가족 행은 '엄마 · 올해 대상 5개', '아빠 · 올해 대상 1개(대장암)'이다. LockedTier를 마운트하면 logImpression('reward_locked_tier')가 1회 기록된다.",
+        "F7-AC-4: FamilyTeaser는 가족 엄마·아빠가 있으면 '등록한 가족: 엄마 · 아빠', 0명이면 '가족을 추가해 함께 확인해요'를 표시한다.",
+        "F7-AC-5: 가족이 0명이면 본인만 담긴 Card 3장, Asset.ContentIcon, '가족을 추가하면 함께 볼 수 있어요'가 보인다. '가족 추가'를 탭하면 navigate('/profile/new', {state:{mode:'family'}})를 호출하고 logClick('family_add')를 기록한다.",
+        "F7-AC-6: '엄마' 행을 탭하면 BottomSheet에 엄마 항목 행 7개(조건부 2개 포함)와 Switch가 보인다. Switch를 ON하면 toggleRecord(엄마.id, …)를 호출한다. '정보 수정'을 누르면 navigate('/profile/' + 엄마.id + '/edit')다.",
+        "F7-AC-7·DV-AC-2: 동생(1997·female·dependent)은 '동생 · 올해 대상 없음 · 다음 2027년' 행으로 남는다. invalidFamily에 든 가족은 '{이름} · 출생연도를 확인해주세요' 행으로 남는다."
+      ]
+    },
+    "covers": [
+      "F7-AC-2",
+      "F7-AC-4",
+      "F7-AC-5",
+      "F7-AC-6",
+      "F7-AC-7"
+    ],
+    "files": [
+      "src/components/home/LockedTier.tsx",
+      "src/components/home/FamilyTeaser.tsx",
+      "src/components/home/FamilyChecklistSheet.tsx",
+      "src/components/home/LockedTier.test.tsx",
+      "src/components/home/FamilyChecklistSheet.test.tsx"
+    ],
+    "definition_of_done": [
+      "npm run build 통과",
+      "npm test 통과(today 2026-10-10)",
+      "LockedTier·FamilyTeaser는 TossRewardAd를 import하지 않음",
+      "자기 파일 HEX 0건"
+    ],
+    "depends_on": [
+      "0004",
+      "0013"
+    ],
+    "db_schema": "",
+    "api_contract": "",
+    "dependencies": [],
+    "ui_requirements": "Blueprint S1-b (Pattern: 리워드 게이트로 결과의 더 깊은 층을 잠금):\nFamilyTeaser:\n<ListRow contents={<ListRow.Texts type='2RowTypeA' top='가족' bottom={family.length ? '등록한 가족: ' + family.map(f => f.name).join(' · ') : '가족을 추가해 함께 확인해요'} />} />\nLockedTier:\n<div data-testid='locked-tier'>\n  <Paragraph.Text typography='t4'>3년 검진 계획</Paragraph.Text>\n  <Spacing size={12} />\n  {plan.map(p => <Card data-testid={'plan-year-' + p.year}><Paragraph.Text typography='t5'>{p.year}년</Paragraph.Text>{p.lines.map(l => <><Spacing size={4} /><Paragraph.Text typography='t7'>{l}</Paragraph.Text></>)}</Card>)}  {/* 카드 사이 Spacing 12 */}\n  <Spacing size={24} />\n  <Paragraph.Text typography='t4'>가족 올해 결과</Paragraph.Text>\n  <Spacing size={12} />\n  {family.length === 0 ? <EmptyState(Asset.ContentIcon) title='가족을 추가하면 함께 볼 수 있어요' /> : family.map(f => <ListRow onClick={() => openFamilySheet(f)} contents={<ListRow.Texts type='2RowTypeA' top={f.name} bottom={familySummary(f)} />} />)}\n  <Spacing size={12} />\n  <Button display='block' variant='weak' onClick={addFamily}>가족 추가</Button>\n</div>\nFamilyChecklistSheet(S1-c): <BottomSheet open header={<BottomSheet.Header>{name}</BottomSheet.Header>}>{items.map(i => <CheckupItemRow status={i} profileId={f.id} eligibleCount={...} />)}<Spacing size={16} /><Button display='block' variant='weak' onClick={edit}>정보 수정</Button></BottomSheet>\n비대상이거나 출생연도가 잘못된 가족도 목록에서 빼지 않는다. 가족 추가·행 탭은 tickWeak이다. 새 라우트는 만들지 않는다."
+  },
+  {
+    "id": "0017",
+    "title": "홈 하단 관리 — HomeFooterActions (내 정보 수정·기준 출처·초기화)",
+    "epic": "Epic 3: UI Pages",
+    "task": {
+      "description": "src/components/home/HomeFooterActions.tsx는 홈 하단의 ListRow 3개('내 정보 수정', '검진 기준과 출처', '데이터 초기화')와 각 행이 여는 BottomSheet·AlertDialog다. 출처는 formatRuleLine 텍스트로만 보여 주고 외부 링크는 0개다. 초기화는 resetAll 후 본인 입력 화면으로 replace 이동한다. 실패하면 홈에 남고 Toast를 띄운다.",
+      "acceptance_criteria": [
+        "F8-AC-1: '내 정보 수정'을 탭하면 state 없이 navigate('/profile/' + selfId + '/edit')를 호출한다.",
+        "F8-AC-4: '검진 기준과 출처'를 탭하면 BottomSheet에 CheckupRule 7개 행이 보이고, 그중 '위암 검진 · 만 40세 이상 · 2년마다 · 암관리법 시행령 별표1'이 있다. 시트 안에서 querySelectorAll('a[href^=\"http\"]').length === 0이다.",
+        "F8-AC-6: '데이터 초기화'를 탭하면 AlertDialog '모든 프로필과 체크 기록을 지울까요?'가 뜬다. '초기화'를 누르면 키 3개가 지워지고 navigate('/profile/new', {replace:true, state:{mode:'self'}})를 호출한다. 왼쪽 버튼 '닫기'를 누르면 변화가 없다.",
+        "F8-AC-7: removeItem이 예외를 던지면 Toast '초기화하지 못했어요. 다시 시도해주세요'를 띄운다. navigate와 console.error는 모두 0회다."
+      ]
+    },
+    "covers": [
+      "F8-AC-1",
+      "F8-AC-4",
+      "F8-AC-6",
+      "F8-AC-7"
+    ],
+    "files": [
+      "src/components/home/HomeFooterActions.tsx",
+      "src/components/home/HomeFooterActions.test.tsx"
+    ],
+    "definition_of_done": [
+      "npm run build 통과",
+      "npm test 통과",
+      "window.open·외부 href 0건",
+      "자기 파일 HEX 0건"
+    ],
+    "depends_on": [
+      "0003",
+      "0009"
+    ],
+    "db_schema": "",
+    "api_contract": "",
+    "dependencies": [],
+    "ui_requirements": "Blueprint S1-b 하단 + S1-c 시트·다이얼로그:\n<ListRow onClick={editSelf} contents={<ListRow.Texts type='1RowTypeA' top='내 정보 수정' />} withArrow />\n<ListRow onClick={openRuleSheet} contents={<ListRow.Texts type='1RowTypeA' top='검진 기준과 출처' />} withArrow />\n<ListRow onClick={openResetDialog} contents={<ListRow.Texts type='1RowTypeA' top='데이터 초기화' />} />\n기준 시트: <BottomSheet open header={<BottomSheet.Header>검진 기준과 출처</BottomSheet.Header>}>{CHECKUP_RULES.map(r => <ListRow contents={<ListRow.Texts type='2RowTypeA' top={r.label} bottom={formatRuleLine(r.id)} />} />)}<Spacing size={16} /><Button display='block' variant='weak'>닫기</Button></BottomSheet> — 텍스트만, 링크 없음.\n초기화 다이얼로그: <AlertDialog title='모든 프로필과 체크 기록을 지울까요?' 왼쪽 '닫기' 오른쪽 '초기화' />\n오류: openToast('초기화하지 못했어요. 다시 시도해주세요'). 행 탭은 tickWeak이다. 터치 영역은 ListRow 기본값(44px 이상)이다."
+  },
+  {
+    "id": "0018",
+    "title": "홈 화면 조립 — Home (/)",
+    "epic": "Epic 3: UI Pages",
+    "task": {
+      "description": "핵심 여정(결과). src/pages/Home.tsx는 useHomeBootstrap과 블록들을 SPEC S1 순서대로 조립한다(파이프라인 규칙상 Page 접미사 없음). 순서는 ScreenScaffold·Top '올해검진' → DeadlineBanner → FreeTier → AdSlot → FamilyTeaser → TossRewardAd(자식은 LockedTier뿐) → HomeFooterActions다. 로딩 중에는 Loader만 그린다.",
+      "acceptance_criteria": [
+        "F7-AC-1: 테스트에서 TossRewardAd를 children을 렌더하지 않는 mock으로 바꿔도 free-tier에 '일반건강검진'·'위암 검진' 행과 'D-82'가 보인다.",
+        "F7-AC-3: DOM 순서는 free-tier → AdSlot(adGroupId=import.meta.env.VITE_TOSS_AD_GROUP_ID) → 가족 티저 → locked-tier다. TossRewardAd mock이 받은 children 안에 data-testid='free-tier'는 0개이고 locked-tier만 있다. slotId는 import.meta.env.VITE_TOSS_AD_SLOT_ID다.",
+        "F4-AC-2·4: ready 상태에서 Top title은 '올해검진'이다. status가 'loading'이면 Loader 1개만 보이고 summary-hero·deadline-banner는 0개, navigate는 0회다.",
+        "F4-AC-5·6: self가 없으면 /profile/new로 replace 이동한다. state {toast:'saved'}로 진입하면 '저장했어요'를 1회 띄운다(훅 연결 검증).",
+        "DV-AC-2: mock으로 범위 밖 birthYear 가족이 들어와도 크래시 없이 렌더되고, locked-tier에 '{이름} · 출생연도를 확인해주세요' 행이 있다."
+      ]
+    },
+    "covers": [
+      "F7-AC-1",
+      "F7-AC-3",
+      "F7-AC-4",
+      "F4-AC-2",
+      "F4-AC-4",
+      "F4-AC-5",
+      "F4-AC-6"
+    ],
+    "files": [
+      "src/pages/Home.tsx",
+      "src/pages/Home.test.tsx"
+    ],
+    "definition_of_done": [
+      "npm run build 통과",
+      "npm test 통과(TossRewardAd·AdSlot mock)",
+      "TossRewardAd로 화면 전체를 감싸지 않음",
+      "자기 파일 HEX 0건"
+    ],
+    "depends_on": [
+      "0012",
+      "0014",
+      "0015",
+      "0016",
+      "0017"
+    ],
+    "db_schema": "",
+    "api_contract": "",
+    "dependencies": [],
+    "ui_requirements": "Blueprint S1 조립(라우트 '/' 하나):\nif (phase === 'loading') return <ScreenScaffold><Top title={<Top.TitleParagraph>올해검진</Top.TitleParagraph>} /><Loader /></ScreenScaffold>;\n<ScreenScaffold>\n<Top title={<Top.TitleParagraph>올해검진</Top.TitleParagraph>} />\n<DeadlineBanner ... />\n<Spacing size={16} />\n<FreeTier ... />            {/* TossRewardAd 바깥 = 무료 층 */}\n<Spacing size={24} />\n<AdSlot adGroupId={import.meta.env.VITE_TOSS_AD_GROUP_ID} />\n<Spacing size={16} />\n<FamilyTeaser family={family} />   {/* 게이트 바깥 */}\n<TossRewardAd slotId={import.meta.env.VITE_TOSS_AD_SLOT_ID}>\n  <LockedTier ... />        {/* 더 깊은 층만 게이트 안 */}\n</TossRewardAd>\n<Spacing size={32} />\n<HomeFooterActions selfId={self.id} />\n</ScreenScaffold>\n상태: 로딩이면 Loader만 그린다. 빈 상태는 FreeTier가 처리하고, 에러는 Toast(훅)로 알린다. 일반 문서 스크롤이고 가상 스크롤은 쓰지 않는다. 광고는 콘텐츠와 겹치지 않게 블록 사이에만 둔다."
+  },
+  {
+    "id": "0019",
+    "title": "라우팅 연결 + 전역 Provider 배선 + 종단 시나리오 (App.tsx 단일 소유)",
+    "epic": "4",
+    "task": {
+      "description": "진입점 소유 패킷이다. src/App.tsx에 라우트 '/'(Home), '/profile/new'·'/profile/:profileId/edit'(ProfileForm), '*'→Navigate '/'를 등록하고 CheckupStoreProvider로 감싼다. 전역 Provider 배선도 여기서만 한다. main.tsx는 수정하지 않는다(@AI:ANCHOR). e2e 테스트로 첫 입력부터 결과, 수정, 삭제, 손상 복구까지 확인한다. 홈 렌더 시 console.error는 0회여야 한다.",
+      "acceptance_criteria": [
+        "F3-AC-1·F4-AC-1(Value): 빈 저장소에서 '/'에 진입하면 /profile/new로 이동한다. '나'·'1986'·남성·직장가입자(사무직)을 제출하면 홈 free-tier에 '일반건강검진'·'위암 검진'·조건부 '간암 검진', '올해 대상 2개', 'D-82'가 보인다(today 2026-10-10).",
+        "F8-AC-1: '내 정보 수정'에서 출생연도를 '1987'로 바꿔 저장하면 Toast '저장했어요'가 뜨고 free-tier에 '올해는 받을 국가검진이 없어요'와 '다음 대상: 2027년'이 보인다.",
+        "F8-AC-2·F7-AC-2: 엄마·아빠를 추가하면 locked-tier(TossRewardAd fail-open)에 plan-year 3장과 '엄마 · 올해 대상 5개'가 보인다. 엄마를 삭제하면 '삭제했어요'가 뜨고 엄마 행은 0개가 된다.",
+        "DV-AC-1·RS-AC-1~3: profiles.v1이 '{oops'인 채로 '/'에 진입하면 Toast '저장된 정보를 불러오지 못해 새로 시작해요'가 뜨고 /profile/new로 간다. '/profile//edit'나 '/unknown'에 직접 진입해도 크래시 없이 '/'로 간다.",
+        "F4-AC-8: 프로덕션 모드 렌더(1986 시드)로 홈을 그리는 동안 console.error spy 호출 수는 0이다. src/App.tsx를 files에 넣은 패킷은 전체에서 이 패킷 하나다."
+      ]
+    },
+    "covers": [
+      "F3-AC-1",
+      "F4-AC-1",
+      "F4-AC-5",
+      "F4-AC-8",
+      "F8-AC-1",
+      "F8-AC-2",
+      "F7-AC-2"
+    ],
+    "files": [
+      "src/App.tsx",
+      "src/App.test.tsx",
+      "src/__tests__/e2e.flow.test.tsx"
+    ],
+    "definition_of_done": [
+      "npm run build 통과",
+      "npm test 통과",
+      "src/main.tsx diff 0줄",
+      "라우트 3개 + catch-all 등록 확인",
+      "자기 파일 HEX 0건"
+    ],
+    "depends_on": [
+      "0011",
+      "0018"
+    ],
+    "db_schema": "",
+    "api_contract": "",
+    "dependencies": [],
+    "ui_requirements": "<CheckupStoreProvider><Routes><Route path='/' element={<Home />} /><Route path='/profile/new' element={<ProfileForm />} /><Route path='/profile/:profileId/edit' element={<ProfileForm />} /><Route path='*' element={<Navigate to='/' replace />} /></Routes></CheckupStoreProvider>. Router·TDS Provider가 이미 main.tsx(템플릿)에 있으면 중복으로 감싸지 않는다. FloatingTabBar는 쓰지 않는다(화면 2개, 하단 탭 없음). 결제(IAP)·프로모션은 없다."
+  },
+  {
+    "id": "0020",
+    "title": "검수 정적 검사 + 릴리스 광고 env 검사 + 터치 영역 QA 문서 (소스 수정 없음)",
+    "epic": "Epic 4: Integration",
+    "task": {
+      "description": "폴리시·검수 패킷이다. compliance.test.ts는 검수 반려 조건을 정적 검사로 고정한다(HEX, 외부 SDK, 외부 이동, 설치 유도, 금지 API, CSS 여백). 위반이 나와도 남의 파일은 고치지 않고 해당 패킷에 재작업을 요청한다. scripts/check-release-env.mjs와 package.json의 build:release는 광고 env가 없으면 릴리스 빌드를 실패시킨다. docs/qa/touch-targets.md는 44px 실측 체크리스트다.",
+      "acceptance_criteria": [
+        "F4-AC-8: src/**/*.{ts,tsx,css}에서 /#[0-9a-fA-F]{3,8}\\b/ 매치는 0건이다(compliance-baseline.md의 템플릿 예외만 허용). react-ga·@amplitude/*·admob·stripe import는 0건이고, crypto.randomUUID·structuredClone·.at(·Object.hasOwn·grantPromotionReward도 0건이다.",
+        "F8-AC-5·F8-AC-4: __tests__를 뺀 src/**에서 window.open 0건, window.location.href = 'http… 0건, 문자열 '설치'·'다운로드' 0건, <a href=\"http 0건이다.",
+        "TT-AC-1: 템플릿 기준선 밖의 src/**/*.css와 style={{…}}에서 height|padding|margin|fontSize|lineHeight 선언이 0건이다.",
+        "REL-AC-1·2: VITE_TOSS_AD_GROUP_ID나 VITE_TOSS_AD_SLOT_ID 중 하나라도 비어 있으면 node scripts/check-release-env.mjs는 exit code 1과 함께 빠진 키 이름을 출력한다. 둘 다 있으면 0이다. package.json의 'build:release'는 이 스크립트를 실행한 뒤 build하고, 'build' 스크립트는 바꾸지 않는다(fail-open 유지).",
+        "docs/qa/touch-targets.md에는 S1·S2의 모든 상호작용 요소(ListRow·Switch·Button·ChipItem·시트 버튼)가 목록으로 있고, 요소별 측정 높이와 통과(≥44px) 칸이 있다."
+      ]
+    },
+    "covers": [
+      "F4-AC-8",
+      "F8-AC-4",
+      "F8-AC-5",
+      "F3-AC-8"
+    ],
+    "files": [
+      "src/__tests__/compliance.test.ts",
+      "scripts/check-release-env.mjs",
+      "src/__tests__/releaseEnv.test.ts",
+      "package.json",
+      "docs/qa/touch-targets.md"
+    ],
+    "definition_of_done": [
+      "npm run build 통과",
+      "npm test 통과",
+      "src/App.tsx·src/main.tsx 및 다른 패킷 소유 소스 미수정",
+      "package.json은 scripts.build:release 한 줄만 추가"
+    ],
+    "depends_on": [],
+    "db_schema": "",
+    "api_contract": "",
+    "dependencies": [],
+    "ui_requirements": "UI 변경 없음(검사 전용). 터치 영역 QA 문서에는 실제 기기(360~420px 뷰포트)에서 잰 높이를 적는다. jsdom은 레이아웃을 계산하지 못하므로 자동 테스트로 대체하지 않는다."
+  }
+]
