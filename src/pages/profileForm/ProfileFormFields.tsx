@@ -83,20 +83,22 @@ export default function ProfileFormFields({
         </Paragraph>
       </FormInset>
       <Spacing size={8} />
-      <Chip kind="select">
-        {SEX_OPTIONS.map((o) => (
-          <ChipItem
-            key={o.value}
-            selected={values.sex === o.value}
-            onClick={() => {
-              tickWeak();
-              set({ sex: o.value });
-            }}
-          >
-            {o.label}
-          </ChipItem>
-        ))}
-      </Chip>
+      <FormInset>
+        <Chip kind="select" margin="none">
+          {SEX_OPTIONS.map((o) => (
+            <ChipItem
+              key={o.value}
+              selected={values.sex === o.value}
+              onClick={() => {
+                tickWeak();
+                set({ sex: o.value });
+              }}
+            >
+              {o.label}
+            </ChipItem>
+          ))}
+        </Chip>
+      </FormInset>
       {errors.sex && (
         <FormInset>
           <Spacing size={4} />
