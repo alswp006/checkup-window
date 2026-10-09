@@ -1,0 +1,5 @@
+/* 스캐폴드 기본 스타일 정리본 — 색상·여백·폰트는 TDS와 var(--adaptive*)가 맡고 배치만 남긴다. */
+#root {
+  display: flex;
+  flex-direction: column;
+}

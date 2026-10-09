@@ -1,0 +1,12 @@
+/* 스캐폴드 기본 스타일 정리본 — 배치(flex/grid)만 남긴다. */
+.app-column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.app-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

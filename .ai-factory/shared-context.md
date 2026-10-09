@@ -26,8 +26,97 @@ export type invalidFamilyLineFn = (name: string) => string;
 
 ## Shared Types Contract (IMPORT these, do NOT redefine)
 ```typescript
-// Domain types — add your app-specific types here
-export {};
+// Domain types — 올해검진
+export type Sex = 'male' | 'female';
+
+export type InsuranceType =
+  | 'employee_office'
+  | 'employee_nonoffice'
+  | 'regional_head'
+  | 'dependent'
+  | 'medical_aid';
+
+export type CheckupItemId =
+  | 'general'
+  | 'stomach'
+  | 'colorectal'
+  | 'breast'
+  | 'cervical'
+  | 'liver'
+  | 'lung';
+
+/** 검진 항목 규칙 (상수, 저장 안 함) */
+export interface CheckupRule {
+  id: CheckupItemId;
+  label: string;
+  cycle: 'annual' | 'biennial';
+  minAge: number | null;
+  maxAge: number | null;
+  sex: Sex | null;
+  conditional: boolean;
+  conditionText: string | null;
+  source: string;
+}
+
+/** localStorage 'checkupWindow.profiles.v1' = { version: 1, data: Profile[] } */
+export interface Profile {
+  id: string;
+  name: string;
+  role: 'self' | 'family';
+  birthYear: number;
+  sex: Sex;
+  insuranceType: InsuranceType;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** localStorage 'checkupWindow.records.v1' = { version: 1, data: CheckupRecord[] } */
+export interface CheckupRecord {
+  profileId: string;
+  itemId: CheckupItemId;
+  year: number;
+  receivedAt: string;
+}
+
+/** localStorage 'checkupWindow.banner.v1' */
+export interface BannerState {
+  dismissedMonth: string | null;
+}
+
+/** 계산 결과 (저장 안 함) */
+export interface ItemStatus {
+  itemId: CheckupItemId;
+  label: string;
+  eligibleThisYear: boolean;
+  conditional: boolean;
+  received: boolean;
+  nextYear: number | null;
+  reason: string;
+}
+
+export interface ProfileResult {
+  profileId: string;
+  year: number;
+  age: number;
+  items: ItemStatus[];
+  eligibleCount: number;
+  receivedCount: number;
+  daysLeft: number;
+  nextCheckupYear: number | null;
+}
+
+export interface PlanYear {
+  year: number;
+  items: ItemStatus[];
+}
+
+export type StoreResult =
+  | { ok: true }
+  | { ok: false; error: 'STORAGE_FULL' | 'FAMILY_LIMIT' | 'DUPLICATE_NAME' | 'SELF_EXISTS' };
+
+/** 라우트 state */
+export type HomeLocationState = { toast: 'saved' | 'deleted' } | null;
+export type ProfileFormLocationState = { mode: 'self' | 'family' } | null;
 
 ```
 
@@ -52,6 +141,7 @@ export {};
   hooks/
   lib/
     analytics.ts
+    contract.ts
     review.ts
     share.ts
     storage.ts
@@ -69,9 +159,11 @@ export {};
 
 ### Exports (src/lib/)
 - analytics.ts: export type LogFields = Record<string, string | number | boolean | null>; export const DWELL_MS = 3000; export function fireAndForget(call: () => unknown): void; export function logScreen(page: string, extra?: LogFields): void; export function logClick(name: string, extra?: LogFields): void; export function logImpression(name: string, extra?: LogFields): void; export function useScreenLog(page: string): void
+- contract.ts: export type newIdFn = () => string; export type resetAllFn = () =>; export type invalidFamilyLineFn = (name: string) => string
 - review.ts: export function requestReviewOnce(key: string = REVIEW_REQUESTED_KEY): void
 - share.ts: export interface ShareAppOptions; export async function shareApp(opts: ShareAppOptions): Promise<void>
 - storage.ts: export function getItem<T>(key: string): T | null; export function setItem<T>(key: string, value: T): void; export function removeItem(key: string): void
+- types.ts: export type Sex = 'male' | 'female'; export type InsuranceType = | 'employee_office' | 'employee_nonoffice' | 'regional_head' | 'dependent' | 'medical_aid'; export type CheckupItemId = | 'general' | 'stomach' | 'colorectal' | 'breast' | 'cervical' | 'liver' | 'lung'; export interface CheckupRule; export interface Profile; export interface CheckupRecord; export interface BannerState; export interface ItemStatus
 - utils.ts: export function cn(...classes: (string | boolean | undefined | null)[]): string; export function formatNumber(n: number): string; export function formatCurrency(n: number, currency = 'KRW'): string
 
 ### Components (src/components/)
@@ -90,6 +182,9 @@ export {};
 - TossPurchase.tsx: TossPurchase
 - TossRewardAd.tsx: TossRewardAd
 CRITICAL: Before creating any new function, type, or component, check the list above. If something similar exists, import and use it.
+
+## Already Implemented (do NOT duplicate or overwrite)
+- 0001: TypeScript 타입 + RouteState 계약 정의 (files: src/lib/types.ts)
 
 ## Available exports from existing files
 // src/App.tsx
