@@ -175,6 +175,8 @@ export type ProfileFormLocationState = { mode: 'self' | 'family' } | null;
   pages/
     Home.test.tsx
     Home.tsx
+    ProfileForm.test.tsx
+    ProfileForm.tsx
     __TdsGallery.tsx
     home/
     profileForm/
@@ -221,12 +223,15 @@ export type ProfileFormLocationState = { mode: 'self' | 'family' } | null;
 ### Module Dependencies (import graph)
   pages/Home.test.tsx → imports: __tests__/__helpers__/mocks, test/renderWithProviders, data/storage, pages/home/useHomeBootstrap
   pages/Home.tsx → imports: components/AdSlot, components/ScreenScaffold, components/TossRewardAd, components/home/DeadlineBanner, components/home/FamilyTeaser, components/home/FreeTier, components/home/HomeFooterActions, components/home/LockedTier, pages/home/useHomeBootstrap, lib/types
+  pages/ProfileForm.test.tsx → imports: __tests__/__helpers__/mocks, test/renderWithProviders, data/storage
+  pages/ProfileForm.tsx → imports: components/ScreenScaffold, components/BottomCTA, data/useCheckupStore, lib/analytics, lib/types, pages/profileForm/DeleteProfileButton, pages/profileForm/ProfileFormFields, pages/profileForm/validate, pages/profileForm/validate
   pages/home/useHomeBootstrap.test.tsx → imports: test/renderWithProviders, data/storage, pages/home/useHomeBootstrap
   pages/home/useHomeBootstrap.ts → imports: data/useCheckupStore, domain/plan, domain/checkup, lib/types
+  pages/profileForm/DeleteProfileButton.test.tsx → imports: __tests__/__helpers__/mocks, pages/profileForm/DeleteProfileButton
   pages/profileForm/ProfileFormFields.test.tsx → imports: __tests__/__helpers__/mocks, pages/profileForm/ProfileFormFields, pages/profileForm/validate
   pages/profileForm/ProfileFormFields.tsx → imports: domain/rules, lib/types
   pages/profileForm/validate.test.ts → imports: pages/profileForm/validate
-  pages/profileForm/validate.ts → imports: lib/types
+  pages/profileForm/validate.ts...
 CRITICAL: Before creating any new function, type, or component, check the list above. If something similar exists, import and use it.
 
 ## Already Implemented (do NOT duplicate or overwrite)
@@ -247,11 +252,9 @@ CRITICAL: Before creating any new function, type, or component, check the list a
 - 0012: 홈 부트스트랩 훅 — useHomeBootstrap (files: src/pages/home/useHomeBootstrap.ts, src/pages/home/useHomeBootstrap.test.tsx)
 - 0018: 홈 화면 조립 — Home (/) (files: src/pages/Home.tsx, src/pages/Home.test.tsx)
 - 0010: 프로필 폼 본문 — ProfileFormFields + validate (files: src/pages/profileForm/validate.ts, src/pages/profileForm/validate.test.ts, src/pages/profileForm/ProfileFormFields.tsx, src/pages/profileForm/ProfileFormFields.test.tsx)
+- 0011: 프로필 입력·수정 화면 — ProfileForm + DeleteProfileButton (files: src/pages/ProfileForm.tsx, src/pages/ProfileForm.test.tsx, src/pages/profileForm/DeleteProfileButton.tsx, src/pages/profileForm/DeleteProfileButton.test.tsx)
 
 ## Available exports from existing files
-// src/App.tsx
-export default function App() {
-
 // src/components/AdSlot.tsx
 export function AdSlot({ adGroupId, className, variant, theme }: AdSlotProps) {
 
@@ -317,7 +320,9 @@ export default function FreeTier({ result, profileId }: FreeTierProps) {
 export default function HomeFooterActions({ selfId }: HomeFooterActionsProps) {
 
 // src/components/home/LockedTier.tsx
-export default function LockedTier({ self, family, familyResults }: Lock
+export default function LockedTier({ self, family, familyResults }: LockedTierProps) {
+
+// src/data/CheckupStoreProvider
 
 ## Memory Index (자동 학습 — 힌트로만 사용, 실제 코드 확인 필수)
 

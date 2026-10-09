@@ -373,14 +373,15 @@ export function mockTds() {
             { role: "navigation" },
             slot("upper", upper),
             subtitleTop != null ? h("p", { "data-slot": "subtitle-top" }, subtitleTop) : null,
-            title ? h("h1", null, title) : null,
+            // 벤더는 title을 <div role="heading">로 감싸고 TitleParagraph는 Paragraph(heading 아님)다 — h1>h1 중첩 경고를 만들지 않는다.
+            title ? h("div", { role: "heading", "aria-level": 1 }, title) : null,
             subtitleBottom != null ? h("p", { "data-slot": "subtitle-bottom" }, subtitleBottom) : null,
             slot("right", right),
             slot("lower", lower),
             children,
           ),
         {
-          TitleParagraph: ({ children }: any) => h("h1", null, children),
+          TitleParagraph: ({ children }: any) => h("span", null, children),
           SubtitleParagraph: ({ children }: any) => h("p", null, children),
           RightButton: plainButton,
           LowerButton: plainButton,
