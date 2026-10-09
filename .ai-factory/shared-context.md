@@ -208,6 +208,7 @@ export type ProfileFormLocationState = { mode: 'self' | 'family' } | null;
 - TossPurchase.tsx: TossPurchase
 - TossRewardAd.tsx: TossRewardAd
 - home/CheckupItemRow.tsx: CheckupItemRow
+- home/FreeTier.tsx: FreeTier
 CRITICAL: Before creating any new function, type, or component, check the list above. If something similar exists, import and use it.
 
 ## Already Implemented (do NOT duplicate or overwrite)
@@ -221,6 +222,7 @@ CRITICAL: Before creating any new function, type, or component, check the list a
 - 0008: 수검 기록 토글·배너 닫기·전체 초기화 — recordRepo (files: src/data/recordRepo.ts, src/data/recordRepo.test.ts)
 - 0009: 상태 관리 — CheckupStoreProvider·useCheckupStore (files: src/data/CheckupStoreProvider.tsx, src/data/useCheckupStore.ts, src/data/CheckupStoreProvider.test.tsx, src/test/renderWithProviders.tsx)
 - 0013: 검진 항목 행 — CheckupItemRow (Switch·조건부 시트) (files: src/components/home/CheckupItemRow.tsx, src/components/home/CheckupItemRow.test.tsx)
+- 0014: 무료 층 — FreeTier (히어로·체크리스트·빈 상태·고지·공유) (files: src/components/home/FreeTier.tsx, src/components/home/FreeTier.test.tsx)
 
 ## Available exports from existing files
 // src/App.tsx
@@ -275,6 +277,9 @@ export function TossRewardAd({
 // src/components/home/CheckupItemRow.tsx
 export default function CheckupItemRow({ profileId, status, year, eligibleCount }: CheckupItemRowProps) {
 
+// src/components/home/FreeTier.tsx
+export default function FreeTier({ result, profileId }: FreeTierProps) {
+
 // src/data/CheckupStoreProvider.tsx
 export function CheckupStoreProvider({ children }: { children: ReactNode }) {
 
@@ -288,9 +293,7 @@ export function updateProfile(
 export function deleteProfile(snapshot: ProfileSnapshot, id: string): RepoResult {
 
 // src/data/recordRepo.ts
-export function pruneRecords(records: CheckupRecord[], thisYear: number): CheckupRecord[] {
-export function toggleRecord(
-export function dismissBanner
+export function pruneRecords(records: Che
 
 ## Memory Index (자동 학습 — 힌트로만 사용, 실제 코드 확인 필수)
 
