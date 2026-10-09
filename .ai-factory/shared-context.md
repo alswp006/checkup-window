@@ -140,8 +140,12 @@ export type ProfileFormLocationState = { mode: 'self' | 'family' } | null;
     TossPurchase.tsx
     TossRewardAd.tsx
   domain/
+    banner.test.ts
+    banner.ts
     checkup.test.ts
     checkup.ts
+    format.test.ts
+    format.ts
     plan.test.ts
     plan.ts
     rules.test.ts
@@ -197,6 +201,7 @@ CRITICAL: Before creating any new function, type, or component, check the list a
 - 0002: 스캐폴드 CSS 정리 + 검수 기준선 + .env.example (files: src/index.css, src/App.css, docs/qa/compliance-baseline.md, .env.example)
 - 0003: 검진 기준 상수(rules) + 판정 엔진 evaluateProfile·daysUntilYearEnd (files: src/domain/rules.ts, src/domain/rules.test.ts, src/domain/checkup.ts, src/domain/checkup.test.ts)
 - 0004: 판정 엔진 — buildPlan·evaluateAll·계획표/가족 문구 (files: src/domain/plan.ts, src/domain/plan.test.ts)
+- 0005: 표시 문구·canToggle·마감 배너 판정 (순수 함수) (files: src/domain/format.ts, src/domain/banner.ts, src/domain/format.test.ts, src/domain/banner.test.ts)
 
 ## Available exports from existing files
 // src/App.tsx
@@ -248,24 +253,24 @@ export function TossPurchase({
 // src/components/TossRewardAd.tsx
 export function TossRewardAd({
 
+// src/domain/banner.ts
+export interface BannerView {
+export function bannerView(result: ProfileResult, bannerState: BannerState, today: Date): BannerView | null {
+
 // src/domain/checkup.ts
 export function isEvaluable(birthYear: number, today: Date): boolean {
 export function daysUntilYearEnd(today: Date): number {
 export function evaluateProfile(profile: Profile, records: CheckupRecord[], today: Date): ProfileResult {
 
-// src/domain/plan.ts
-export function buildPlan(profile: Profile, records: CheckupRecord[], today: Date, years = 3): PlanYear[] {
-export function evaluateAll(
-export function planLines(plan: Record<string, PlanYear>, profiles: Profile[]): string[] {
-export function familySummary(result: ProfileResult): string {
-export function invalidFamilyLine(name: string): string {
+// src/domain/format.ts
+export function itemDescription(status: ItemStatus, _year: number): string {
+export function canToggle(status: ItemStatus, eligibleCount: number): boolean {
+export function isAllReceived(result: ProfileResult): boolean {
+export function heroCaption(result: ProfileResult): string {
+export function emptyStateText(result: ProfileResult): { title: string; description: string } {
 
-// src/domain/rules.ts
-export const CHECKUP_RULES: readonly CheckupRule[] = [
-export interface GeneralCheckupRule {
-export const GENERAL_RULE_BY_INSURANCE: Record<InsuranceType, GeneralCheckupRule> = {
-export interface InsuranceOption {
-export co
+// src/domain/plan.ts
+export function buildPlan(pr
 
 ## Memory Index (자동 학습 — 힌트로만 사용, 실제 코드 확인 필수)
 
