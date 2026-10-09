@@ -139,6 +139,9 @@ export type ProfileFormLocationState = { mode: 'self' | 'family' } | null;
     SummaryHero.tsx
     TossPurchase.tsx
     TossRewardAd.tsx
+  data/
+    storage.test.ts
+    storage.ts
   domain/
     banner.test.ts
     banner.ts
@@ -202,6 +205,7 @@ CRITICAL: Before creating any new function, type, or component, check the list a
 - 0003: 검진 기준 상수(rules) + 판정 엔진 evaluateProfile·daysUntilYearEnd (files: src/domain/rules.ts, src/domain/rules.test.ts, src/domain/checkup.ts, src/domain/checkup.test.ts)
 - 0004: 판정 엔진 — buildPlan·evaluateAll·계획표/가족 문구 (files: src/domain/plan.ts, src/domain/plan.test.ts)
 - 0005: 표시 문구·canToggle·마감 배너 판정 (순수 함수) (files: src/domain/format.ts, src/domain/banner.ts, src/domain/format.test.ts, src/domain/banner.test.ts)
+- 0006: localStorage 원시 함수 + 읽기 검증기 + newId (files: src/data/storage.ts, src/data/storage.test.ts)
 
 ## Available exports from existing files
 // src/App.tsx
@@ -253,6 +257,17 @@ export function TossPurchase({
 // src/components/TossRewardAd.tsx
 export function TossRewardAd({
 
+// src/data/storage.ts
+export const KEYS = {
+export function isProfileList(v: unknown, currentYear: number): boolean {
+export function isRecordList(v: unknown): boolean {
+export function readEnvelope<T = unknown>(
+export function writeJson(key: string, value: unknown): StoreResult {
+export function writeEnvelope(key: string, data: unknown[]): StoreResult {
+export function removeKeys(keys: readonly string[]): StoreResult {
+export function readBanner(): BannerState {
+export function newId(): string {
+
 // src/domain/banner.ts
 export interface BannerView {
 export function bannerView(result: ProfileResult, bannerState: BannerState, today: Date): BannerView | null {
@@ -260,17 +275,7 @@ export function bannerView(result: ProfileResult, bannerState: BannerState, toda
 // src/domain/checkup.ts
 export function isEvaluable(birthYear: number, today: Date): boolean {
 export function daysUntilYearEnd(today: Date): number {
-export function evaluateProfile(profile: Profile, records: CheckupRecord[], today: Date): ProfileResult {
-
-// src/domain/format.ts
-export function itemDescription(status: ItemStatus, _year: number): string {
-export function canToggle(status: ItemStatus, eligibleCount: number): boolean {
-export function isAllReceived(result: ProfileResult): boolean {
-export function heroCaption(result: ProfileResult): string {
-export function emptyStateText(result: ProfileResult): { title: string; description: string } {
-
-// src/domain/plan.ts
-export function buildPlan(pr
+export function evaluateProfile(profile: Profile, recor
 
 ## Memory Index (자동 학습 — 힌트로만 사용, 실제 코드 확인 필수)
 
