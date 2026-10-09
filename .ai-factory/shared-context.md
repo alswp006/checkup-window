@@ -139,6 +139,11 @@ export type ProfileFormLocationState = { mode: 'self' | 'family' } | null;
     SummaryHero.tsx
     TossPurchase.tsx
     TossRewardAd.tsx
+  domain/
+    checkup.test.ts
+    checkup.ts
+    rules.test.ts
+    rules.ts
   hooks/
   index.css
   lib/
@@ -188,6 +193,7 @@ CRITICAL: Before creating any new function, type, or component, check the list a
 ## Already Implemented (do NOT duplicate or overwrite)
 - 0001: TypeScript 타입 + RouteState 계약 정의 (files: src/lib/types.ts)
 - 0002: 스캐폴드 CSS 정리 + 검수 기준선 + .env.example (files: src/index.css, src/App.css, docs/qa/compliance-baseline.md, .env.example)
+- 0003: 검진 기준 상수(rules) + 판정 엔진 evaluateProfile·daysUntilYearEnd (files: src/domain/rules.ts, src/domain/rules.test.ts, src/domain/checkup.ts, src/domain/checkup.test.ts)
 
 ## Available exports from existing files
 // src/App.tsx
@@ -239,29 +245,23 @@ export function TossPurchase({
 // src/components/TossRewardAd.tsx
 export function TossRewardAd({
 
-// src/lib/analytics.ts
-export type LogFields = Record<string, string | number | boolean | null>;
-export const DWELL_MS = 3000;
-export function fireAndForget(call: () => unknown): void {
-export function logScreen(page: string, extra?: LogFields): void {
-export function logClick(name: string, extra?: LogFields): void {
-export function logImpression(name: string, extra?: LogFields): void {
-export function useScreenLog(page: string): void {
+// src/domain/checkup.ts
+export function isEvaluable(birthYear: number, today: Date): boolean {
+export function daysUntilYearEnd(today: Date): number {
+export function evaluateProfile(profile: Profile, records: CheckupRecord[], today: Date): ProfileResult {
 
-// src/lib/contract.ts
-export type newIdFn = () => string;
-export type resetAllFn = () => { ok: boolean };
-export type invalidFamilyLineFn = (name: string) => string;
+// src/domain/rules.ts
+export const CHECKUP_RULES: readonly CheckupRule[] = [
+export interface GeneralCheckupRule {
+export const GENERAL_RULE_BY_INSURANCE: Record<InsuranceType, GeneralCheckupRule> = {
+export interface InsuranceOption {
+export const INSURANCE_OPTIONS: readonly InsuranceOption[] = [
+export function getRule(id: CheckupItemId): CheckupRule {
+export function resolveRule(rule: CheckupRule, insuranceType: InsuranceType): CheckupRule {
+export function formatAgeRange(minAge: number | null, maxAge: number | null): string | null {
+export function formatRuleLine(id: CheckupItemId): string {
 
-// src/lib/review.ts
-export function requestReviewOnce(key: string = REVIEW_REQUESTED_KEY): void {
-
-// src/lib/share.ts
-export interface ShareAppOptions {
-export async function shareApp(opts: ShareAppOptions): Promise<void> {
-
-// src/lib/storage.ts
-export function g
+// src/lib/an
 
 ## Memory Index (자동 학습 — 힌트로만 사용, 실제 코드 확인 필수)
 
