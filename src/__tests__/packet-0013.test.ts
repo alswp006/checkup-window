@@ -2,19 +2,32 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import React, { useState } from "react";
 import { MemoryRouter } from "react-router-dom";
 import { render, screen, fireEvent, within } from "@testing-library/react";
-import { generateHapticFeedback } from "@apps-in-toss/web-framework";
 import {
-  mockAll,
+  mockAnalytics,
   mockOpenToast,
   mockLogClick,
   mockRequestReviewOnce,
+  mockRouter,
+  mockTds,
+  mockTossRewardAd,
 } from "@/__tests__/__helpers__/mocks";
+import { generateHapticFeedback } from "@apps-in-toss/web-framework";
 import { evaluateProfile } from "@/domain/checkup";
 import { CHECKUP_RULES } from "@/domain/rules";
 import type { CheckupItemId, CheckupRecord, ItemStatus, Profile, StoreResult } from "@/lib/types";
 import CheckupItemRow from "@/components/home/CheckupItemRow";
 
-mockAll();
+// SDK 목은 여기서 하나만 건다. 햅틱 호출은 테스트 본문에서 같은 모듈을 import해 단언한다
+// (별도 hoisted 스파이를 두면 컴포넌트가 잡는 인스턴스와 갈라져 호출 0회로 보인다).
+vi.mock("@apps-in-toss/web-framework", () => ({
+  generateHapticFeedback: vi.fn(),
+}));
+
+// mockAll()은 쓰지 않는다 — 그 안의 mockAppsInToss()가 위 SDK 목을 다시 등록한다.
+mockTds();
+mockTossRewardAd();
+mockRouter();
+mockAnalytics();
 
 const mockToggleRecord = vi.fn<(profileId: string, itemId: CheckupItemId, year: number) => StoreResult>();
 vi.mock("@/data/useCheckupStore", () => ({

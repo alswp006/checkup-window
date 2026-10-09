@@ -140,12 +140,15 @@ export type ProfileFormLocationState = { mode: 'self' | 'family' } | null;
     TossPurchase.tsx
     TossRewardAd.tsx
   data/
+    CheckupStoreProvider.test.tsx
+    CheckupStoreProvider.tsx
     profileRepo.test.ts
     profileRepo.ts
     recordRepo.test.ts
     recordRepo.ts
     storage.test.ts
     storage.ts
+    useCheckupStore.ts
   domain/
     banner.test.ts
     banner.ts
@@ -174,6 +177,8 @@ export type ProfileFormLocationState = { mode: 'self' | 'family' } | null;
   styles/
     globals.css
     reward-ad.css
+  test/
+    renderWithProviders.tsx
   types/
   vite-env.d.ts
 
@@ -212,6 +217,7 @@ CRITICAL: Before creating any new function, type, or component, check the list a
 - 0006: localStorage 원시 함수 + 읽기 검증기 + newId (files: src/data/storage.ts, src/data/storage.test.ts)
 - 0007: 프로필 CRUD — profileRepo (files: src/data/profileRepo.ts, src/data/profileRepo.test.ts)
 - 0008: 수검 기록 토글·배너 닫기·전체 초기화 — recordRepo (files: src/data/recordRepo.ts, src/data/recordRepo.test.ts)
+- 0009: 상태 관리 — CheckupStoreProvider·useCheckupStore (files: src/data/CheckupStoreProvider.tsx, src/data/useCheckupStore.ts, src/data/CheckupStoreProvider.test.tsx, src/test/renderWithProviders.tsx)
 
 ## Available exports from existing files
 // src/App.tsx
@@ -263,6 +269,9 @@ export function TossPurchase({
 // src/components/TossRewardAd.tsx
 export function TossRewardAd({
 
+// src/data/CheckupStoreProvider.tsx
+export function CheckupStoreProvider({ children }: { children: ReactNode }) {
+
 // src/data/profileRepo.ts
 export interface ProfileSnapshot {
 export type ProfileInput = Omit<Profile, "id" | "createdAt" | "updatedAt">;
@@ -280,9 +289,7 @@ export function resetAll(): StoreResult {
 
 // src/data/storage.ts
 export const KEYS = {
-export function isProfileList(v: unknown, currentYear: number): boolean {
-export function isRecordList(v: unknown): boolean {
-export function read
+export function isProfileList(
 
 ## Memory Index (자동 학습 — 힌트로만 사용, 실제 코드 확인 필수)
 
