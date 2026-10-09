@@ -142,6 +142,8 @@ export type ProfileFormLocationState = { mode: 'self' | 'family' } | null;
   domain/
     checkup.test.ts
     checkup.ts
+    plan.test.ts
+    plan.ts
     rules.test.ts
     rules.ts
   hooks/
@@ -194,6 +196,7 @@ CRITICAL: Before creating any new function, type, or component, check the list a
 - 0001: TypeScript 타입 + RouteState 계약 정의 (files: src/lib/types.ts)
 - 0002: 스캐폴드 CSS 정리 + 검수 기준선 + .env.example (files: src/index.css, src/App.css, docs/qa/compliance-baseline.md, .env.example)
 - 0003: 검진 기준 상수(rules) + 판정 엔진 evaluateProfile·daysUntilYearEnd (files: src/domain/rules.ts, src/domain/rules.test.ts, src/domain/checkup.ts, src/domain/checkup.test.ts)
+- 0004: 판정 엔진 — buildPlan·evaluateAll·계획표/가족 문구 (files: src/domain/plan.ts, src/domain/plan.test.ts)
 
 ## Available exports from existing files
 // src/App.tsx
@@ -250,18 +253,19 @@ export function isEvaluable(birthYear: number, today: Date): boolean {
 export function daysUntilYearEnd(today: Date): number {
 export function evaluateProfile(profile: Profile, records: CheckupRecord[], today: Date): ProfileResult {
 
+// src/domain/plan.ts
+export function buildPlan(profile: Profile, records: CheckupRecord[], today: Date, years = 3): PlanYear[] {
+export function evaluateAll(
+export function planLines(plan: Record<string, PlanYear>, profiles: Profile[]): string[] {
+export function familySummary(result: ProfileResult): string {
+export function invalidFamilyLine(name: string): string {
+
 // src/domain/rules.ts
 export const CHECKUP_RULES: readonly CheckupRule[] = [
 export interface GeneralCheckupRule {
 export const GENERAL_RULE_BY_INSURANCE: Record<InsuranceType, GeneralCheckupRule> = {
 export interface InsuranceOption {
-export const INSURANCE_OPTIONS: readonly InsuranceOption[] = [
-export function getRule(id: CheckupItemId): CheckupRule {
-export function resolveRule(rule: CheckupRule, insuranceType: InsuranceType): CheckupRule {
-export function formatAgeRange(minAge: number | null, maxAge: number | null): string | null {
-export function formatRuleLine(id: CheckupItemId): string {
-
-// src/lib/an
+export co
 
 ## Memory Index (자동 학습 — 힌트로만 사용, 실제 코드 확인 필수)
 
