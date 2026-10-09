@@ -175,6 +175,7 @@ export type ProfileFormLocationState = { mode: 'self' | 'family' } | null;
   pages/
     Home.tsx
     __TdsGallery.tsx
+    home/
   styles/
     globals.css
     reward-ad.css
@@ -214,6 +215,10 @@ export type ProfileFormLocationState = { mode: 'self' | 'family' } | null;
 - home/FreeTier.tsx: FreeTier
 - home/HomeFooterActions.tsx: HomeFooterActions
 - home/LockedTier.tsx: LockedTier
+
+### Module Dependencies (import graph)
+  pages/home/useHomeBootstrap.test.tsx → imports: test/renderWithProviders, data/storage, pages/home/useHomeBootstrap
+  pages/home/useHomeBootstrap.ts → imports: data/useCheckupStore, domain/plan, domain/checkup, lib/types
 CRITICAL: Before creating any new function, type, or component, check the list above. If something similar exists, import and use it.
 
 ## Already Implemented (do NOT duplicate or overwrite)
@@ -231,6 +236,7 @@ CRITICAL: Before creating any new function, type, or component, check the list a
 - 0015: 하반기 마감 배너 — DeadlineBanner (files: src/components/home/DeadlineBanner.tsx, src/components/home/DeadlineBanner.test.tsx)
 - 0016: 잠금 층 — LockedTier(3개년 계획·가족 결과) + FamilyTeaser + FamilyChecklistSheet (files: src/components/home/LockedTier.tsx, src/components/home/FamilyTeaser.tsx, src/components/home/FamilyChecklistSheet.tsx, src/components/home/LockedTier.test.tsx, src/components/home/FamilyChecklistSheet.test.tsx)
 - 0017: 홈 하단 관리 — HomeFooterActions (내 정보 수정·기준 출처·초기화) (files: src/components/home/HomeFooterActions.tsx, src/components/home/HomeFooterActions.test.tsx)
+- 0012: 홈 부트스트랩 훅 — useHomeBootstrap (files: src/pages/home/useHomeBootstrap.ts, src/pages/home/useHomeBootstrap.test.tsx)
 
 ## Available exports from existing files
 // src/App.tsx

@@ -17,7 +17,9 @@ export function renderWithProviders(ui: ReactElement, options: RenderWithProvide
     for (const [key, value] of Object.entries(storage)) localStorage.setItem(key, value);
   }
   return render(
-    <MemoryRouter initialEntries={[{ pathname: route, state }]}>
+    // React Router는 initialEntries[0]의 state를 버린다(첫 항목은 항상 state null) — 그래서 진입
+    // state를 살리려면 첫 항목 뒤에 실제 진입 항목을 둔다.
+    <MemoryRouter initialEntries={[{ pathname: "/", state: null }, { pathname: route, state }]} initialIndex={1}>
       <CheckupStoreProvider>{ui}</CheckupStoreProvider>
     </MemoryRouter>,
   );

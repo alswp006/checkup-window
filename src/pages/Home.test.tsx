@@ -6,12 +6,10 @@ import { renderWithProviders } from "@/test/renderWithProviders";
 import { KEYS } from "@/data/storage";
 import type { HomeBootstrap } from "@/pages/home/useHomeBootstrap";
 
-vi.mock("@apps-in-toss/web-framework", () => ({ generateHapticFeedback: vi.fn() }));
-
 mockTds();
 
-// mocks.ts는 import만 해도 자기 vi.mock(react-router-dom·TossRewardAd)을 호이스팅해 이 파일의 목을 덮는다.
-// 그래서 두 목은 import 뒤 beforeAll에서 doMock으로 다시 걸고, Home은 그 뒤에 동적으로 읽는다.
+// mocks.ts는 import만 해도(vi.mock 호이스팅) TossRewardAd·react-router-dom 목을 자기 것으로 덮는다 —
+// 게이트가 children을 안 그리는 경우와 location.state가 필요하므로 import 뒤에 doMock으로 다시 걸고 Home을 동적으로 읽는다.
 const rewardAd = vi.hoisted(() => ({ renderChildren: true, props: [] as Array<Record<string, unknown>> }));
 
 vi.mock("@/components/AdSlot", () => ({
@@ -41,7 +39,6 @@ function seedSelf() {
   return {
     [KEYS.profiles]: JSON.stringify({ version: 1, data: [self] }),
     [KEYS.records]: JSON.stringify({ version: 1, data: [] }),
-    // 지난달에 닫은 배너 — 이번 달(2026-10)에는 다시 떠야 DeadlineBanner 단언이 성립한다.
     [KEYS.banner]: JSON.stringify({ dismissedMonth: "2026-09" }),
   };
 }
@@ -86,7 +83,6 @@ describe("홈 화면 조립 — Home (/)", () => {
     const free = screen.getByTestId("free-tier");
     expect(within(free).getByText(/일반건강검진/)).toBeInTheDocument();
     expect(within(free).getByText(/위암 검진/)).toBeInTheDocument();
-    // D-82는 히어로 캡션과 마감 배너에도 나온다(spec AC-3·배너 AC) — 무료 층 안의 것만 본다.
     expect(within(free).getByText(/D-82/)).toBeInTheDocument();
     expect(screen.queryByTestId("locked-tier")).toBeNull();
   });
@@ -119,7 +115,7 @@ describe("홈 화면 조립 — Home (/)", () => {
     await waitFor(() => expect(screen.getByTestId("free-tier")).toBeInTheDocument());
     expect(screen.getByText("올해검진")).toBeInTheDocument();
     expect(screen.getByTestId("deadline-banner")).toBeInTheDocument();
-    // MiniBar도 progressbar 역할이다(값이 있다) — 로딩 Loader는 값 없는 progressbar라 그것만 센다.
+    // MiniBar도 progressbar 역할이다 — 로더는 aria-valuenow가 없다.
     expect(screen.queryAllByRole("progressbar").filter((el) => !el.hasAttribute("aria-valuenow"))).toHaveLength(0);
   });
 
