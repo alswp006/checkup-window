@@ -177,6 +177,7 @@ export type ProfileFormLocationState = { mode: 'self' | 'family' } | null;
     Home.tsx
     __TdsGallery.tsx
     home/
+    profileForm/
   styles/
     globals.css
     reward-ad.css
@@ -222,6 +223,10 @@ export type ProfileFormLocationState = { mode: 'self' | 'family' } | null;
   pages/Home.tsx → imports: components/AdSlot, components/ScreenScaffold, components/TossRewardAd, components/home/DeadlineBanner, components/home/FamilyTeaser, components/home/FreeTier, components/home/HomeFooterActions, components/home/LockedTier, pages/home/useHomeBootstrap, lib/types
   pages/home/useHomeBootstrap.test.tsx → imports: test/renderWithProviders, data/storage, pages/home/useHomeBootstrap
   pages/home/useHomeBootstrap.ts → imports: data/useCheckupStore, domain/plan, domain/checkup, lib/types
+  pages/profileForm/ProfileFormFields.test.tsx → imports: __tests__/__helpers__/mocks, pages/profileForm/ProfileFormFields, pages/profileForm/validate
+  pages/profileForm/ProfileFormFields.tsx → imports: domain/rules, lib/types
+  pages/profileForm/validate.test.ts → imports: pages/profileForm/validate
+  pages/profileForm/validate.ts → imports: lib/types
 CRITICAL: Before creating any new function, type, or component, check the list above. If something similar exists, import and use it.
 
 ## Already Implemented (do NOT duplicate or overwrite)
@@ -241,6 +246,7 @@ CRITICAL: Before creating any new function, type, or component, check the list a
 - 0017: 홈 하단 관리 — HomeFooterActions (내 정보 수정·기준 출처·초기화) (files: src/components/home/HomeFooterActions.tsx, src/components/home/HomeFooterActions.test.tsx)
 - 0012: 홈 부트스트랩 훅 — useHomeBootstrap (files: src/pages/home/useHomeBootstrap.ts, src/pages/home/useHomeBootstrap.test.tsx)
 - 0018: 홈 화면 조립 — Home (/) (files: src/pages/Home.tsx, src/pages/Home.test.tsx)
+- 0010: 프로필 폼 본문 — ProfileFormFields + validate (files: src/pages/profileForm/validate.ts, src/pages/profileForm/validate.test.ts, src/pages/profileForm/ProfileFormFields.tsx, src/pages/profileForm/ProfileFormFields.test.tsx)
 
 ## Available exports from existing files
 // src/App.tsx

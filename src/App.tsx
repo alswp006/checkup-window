@@ -5,6 +5,7 @@
 import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Home from './pages/Home';
+import ProfileForm from './pages/ProfileForm';
 
 // Dev-only TDS Gallery route — `import.meta.env.DEV` is statically replaced
 // (true in dev, false in prod) so the entire import + Route is tree-shaken
@@ -18,6 +19,8 @@ export default function App() {
     // @ai-factory:providers — 전역 Provider는 <Routes>를 감싸는 이 자리에 둔다(main.tsx는 @AI:ANCHOR, 수정 금지).
     <Routes>
       <Route path="/" element={<Home />} />
+      <Route path="/profile/new" element={<ProfileForm />} />
+      <Route path="/profile/:profileId/edit" element={<ProfileForm />} />
       {DevTdsGallery && (
         <Route
           path="/__tds-gallery"
