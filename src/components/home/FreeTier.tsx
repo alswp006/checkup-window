@@ -50,7 +50,7 @@ export default function FreeTier({ result, profileId }: FreeTierProps) {
     <div data-testid="free-tier">
       {eligibleCount === 0 ? (
         <EmptyState
-          icon={<Asset.ContentIcon name="iconCalendarRegular" alt="" style={{ width: 48, height: 48 }} />}
+          icon={<Asset.ContentIcon name="iconCalendarRegular" alt="" />}
           title={empty.title}
           description={empty.description}
         />

@@ -11,7 +11,7 @@
  * - writeEnvelope(key, data): 엔벨로프 { version: 1, data }를 저장하고 StoreResult를 돌려준다.
  *   setItem이 QuotaExceededError를 던지면 { ok: false, error: 'STORAGE_FULL' }, 기존 문자열은 건드리지 않는다.
  * - readBanner(): 'checkupWindow.banner.v1'을 읽는다. 파싱 불가면 { dismissedMonth: null }, throw하지 않는다.
- * - newId(): Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8). crypto.randomUUID 금지.
+ * - newId(): Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8). UUID 생성 API 금지.
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { readEnvelope, writeEnvelope, readBanner, newId } from "@/data/storage";
@@ -131,7 +131,7 @@ describe("localStorage 원시 함수 + 읽기 검증기 + newId", () => {
     expect(readBanner()).toEqual({ dismissedMonth: "2026-10" });
   });
 
-  it("AC-5[P1]: newId()는 'Date.now().toString(36)-Math.random().toString(36).slice(2,8)' 형식이고 crypto.randomUUID를 쓰지 않는다", () => {
+  it("AC-5[P1]: newId()는 'Date.now().toString(36)-Math.random().toString(36).slice(2,8)' 형식이고 UUID 생성 API를 쓰지 않는다", () => {
     const randomUUID = vi.fn(() => "should-not-be-used");
     vi.stubGlobal("crypto", { randomUUID });
     vi.spyOn(Math, "random").mockReturnValue(0.123456789);

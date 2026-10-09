@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite --host",
     "build": "vite build",
+    "build:release": "node scripts/check-release-env.mjs && npm run build",
     "postbuild": "node scripts/verify-no-dev-leak.mjs dist",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",

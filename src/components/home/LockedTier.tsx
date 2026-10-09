@@ -100,7 +100,7 @@ export default function LockedTier({ self, family, familyResults }: LockedTierPr
       <Spacing size={12} />
       {family.length === 0 ? (
         <EmptyState
-          icon={<Asset.ContentIcon name="iconCalendarRegular" alt="" style={{ width: 48, height: 48 }} />}
+          icon={<Asset.ContentIcon name="iconCalendarRegular" alt="" />}
           title="가족을 추가하면 함께 볼 수 있어요"
         />
       ) : (

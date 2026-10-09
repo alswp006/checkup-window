@@ -545,7 +545,6 @@ export function mockAppsInToss() {
       Analytics,
 
       generateHapticFeedback: vi.fn(),
-      grantPromotionReward: vi.fn(async () => {}),
       getIsTossLoginIntegratedService: vi.fn(async () => false),
 
       loadFullScreenAd,

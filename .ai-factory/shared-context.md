@@ -123,6 +123,7 @@ export type ProfileFormLocationState = { mode: 'self' | 'family' } | null;
 ## Existing Codebase (import and use these — do NOT recreate)
 ### File Tree (src/)
   App.css
+  App.test.tsx
   App.tsx
   components/
     AdSlot.tsx
@@ -231,7 +232,7 @@ export type ProfileFormLocationState = { mode: 'self' | 'family' } | null;
   pages/profileForm/ProfileFormFields.test.tsx → imports: __tests__/__helpers__/mocks, pages/profileForm/ProfileFormFields, pages/profileForm/validate
   pages/profileForm/ProfileFormFields.tsx → imports: domain/rules, lib/types
   pages/profileForm/validate.test.ts → imports: pages/profileForm/validate
-  pages/profileForm/validate.ts...
+  pages/profileF...
 CRITICAL: Before creating any new function, type, or component, check the list above. If something similar exists, import and use it.
 
 ## Already Implemented (do NOT duplicate or overwrite)
@@ -253,8 +254,12 @@ CRITICAL: Before creating any new function, type, or component, check the list a
 - 0018: 홈 화면 조립 — Home (/) (files: src/pages/Home.tsx, src/pages/Home.test.tsx)
 - 0010: 프로필 폼 본문 — ProfileFormFields + validate (files: src/pages/profileForm/validate.ts, src/pages/profileForm/validate.test.ts, src/pages/profileForm/ProfileFormFields.tsx, src/pages/profileForm/ProfileFormFields.test.tsx)
 - 0011: 프로필 입력·수정 화면 — ProfileForm + DeleteProfileButton (files: src/pages/ProfileForm.tsx, src/pages/ProfileForm.test.tsx, src/pages/profileForm/DeleteProfileButton.tsx, src/pages/profileForm/DeleteProfileButton.test.tsx)
+- 0019: 라우팅 연결 + 전역 Provider 배선 + 종단 시나리오 (App.tsx 단일 소유) (files: src/App.tsx, src/App.test.tsx, src/__tests__/e2e.flow.test.tsx)
 
 ## Available exports from existing files
+// src/App.tsx
+export default function App() {
+
 // src/components/AdSlot.tsx
 export function AdSlot({ adGroupId, className, variant, theme }: AdSlotProps) {
 
@@ -320,9 +325,7 @@ export default function FreeTier({ result, profileId }: FreeTierProps) {
 export default function HomeFooterActions({ selfId }: HomeFooterActionsProps) {
 
 // src/components/home/LockedTier.tsx
-export default function LockedTier({ self, family, familyResults }: LockedTierProps) {
-
-// src/data/CheckupStoreProvider
+export default function LockedTier({ self, family, familyResults }: Lock
 
 ## Memory Index (자동 학습 — 힌트로만 사용, 실제 코드 확인 필수)
 
