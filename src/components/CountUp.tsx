@@ -15,12 +15,15 @@ type Typography = ComponentProps<typeof Paragraph.Text>["typography"];
 export function CountUp({
   value,
   unit = "원",
+  prefix,
   typography = "t1",
   durationMs = 700,
   testId,
 }: {
   value: number;
   unit?: string;
+  /** 숫자 앞에 같은 줄로 붙는 문구(예: "올해 대상 ") — 숫자와 줄바꿈되지 않는다. */
+  prefix?: string;
   typography?: Typography;
   durationMs?: number;
   testId?: string;
@@ -65,6 +68,7 @@ export function CountUp({
       }}
     >
       <Paragraph.Text typography={typography}>
+        {prefix}
         {formatNumber(display)}
         {unit}
       </Paragraph.Text>
