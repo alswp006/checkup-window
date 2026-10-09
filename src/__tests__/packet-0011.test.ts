@@ -201,7 +201,7 @@ describe("프로필 입력·수정 화면 — ProfileForm + DeleteProfileButton"
     await waitFor(() => expect(screen.getByRole("button", { name: "삭제" })).toBeInTheDocument());
     fireEvent.click(screen.getByRole("button", { name: "삭제" }));
     const dialog = await screen.findByRole("alertdialog");
-    fireEvent.click(within(dialog).getByRole("button", { name: "닫기" }));
+    fireEvent.click(within(dialog).getByRole("button", { name: "취소" }));
 
     await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull());
     expect(storedProfiles().map((p) => p.id)).toEqual(["self-1", "mom-1"]);

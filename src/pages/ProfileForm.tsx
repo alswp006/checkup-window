@@ -12,7 +12,6 @@ import { FAMILY_LIMIT, validateProfileForm } from "@/pages/profileForm/validate"
 import type { ProfileFormErrors, ProfileFormValues } from "@/pages/profileForm/validate";
 
 const TITLE = <Top.TitleParagraph>올해검진</Top.TitleParagraph>;
-const NEW_TITLE = <Top.TitleParagraph>프로필 입력</Top.TitleParagraph>;
 const SELF_NAME = "나";
 
 const FAILURE_TOAST: Record<Extract<StoreResult, { ok: false }>["error"], string> = {
@@ -139,7 +138,7 @@ export default function ProfileForm() {
   return (
     <ScreenScaffold
       flush
-      top={<Top title={editing ? TITLE : NEW_TITLE} />}
+      top={<Top title={TITLE} />}
       bottom={
         <SubmitFooter
           label={editing ? "저장" : "결과 보기"}

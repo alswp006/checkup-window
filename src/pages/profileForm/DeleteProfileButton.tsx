@@ -30,7 +30,7 @@ export default function DeleteProfileButton({ name, onConfirm }: DeleteProfileBu
         onClose={() => setOpen(false)}
         title={<ConfirmDialog.Title>{`${name} 프로필을 삭제할까요?`}</ConfirmDialog.Title>}
         description={<ConfirmDialog.Description>체크 기록도 함께 지워져요</ConfirmDialog.Description>}
-        cancelButton={<ConfirmDialog.CancelButton onClick={() => setOpen(false)}>닫기</ConfirmDialog.CancelButton>}
+        cancelButton={<ConfirmDialog.CancelButton onClick={() => setOpen(false)}>취소</ConfirmDialog.CancelButton>}
         confirmButton={
           <ConfirmDialog.ConfirmButton
             onClick={() => {

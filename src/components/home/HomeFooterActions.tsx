@@ -80,7 +80,7 @@ export default function HomeFooterActions({ selfId }: HomeFooterActionsProps) {
         open={resetOpen}
         onClose={() => setResetOpen(false)}
         title={<ConfirmDialog.Title>모든 프로필과 체크 기록을 지울까요?</ConfirmDialog.Title>}
-        cancelButton={<ConfirmDialog.CancelButton onClick={() => setResetOpen(false)}>닫기</ConfirmDialog.CancelButton>}
+        cancelButton={<ConfirmDialog.CancelButton onClick={() => setResetOpen(false)}>취소</ConfirmDialog.CancelButton>}
         confirmButton={<ConfirmDialog.ConfirmButton onClick={confirmReset}>초기화</ConfirmDialog.ConfirmButton>}
       />
     </>

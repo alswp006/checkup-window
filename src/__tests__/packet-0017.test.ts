@@ -95,7 +95,7 @@ describe("홈 하단 관리 — HomeFooterActions (내 정보 수정·기준 출
     fireEvent.click(screen.getByRole("button", { name: /데이터 초기화/ }));
     const dialog = screen.getByRole("alertdialog");
     expect(within(dialog).getByText("모든 프로필과 체크 기록을 지울까요?")).toBeInTheDocument();
-    expect(within(dialog).getByRole("button", { name: "닫기" })).toBeInTheDocument();
+    expect(within(dialog).getByRole("button", { name: "취소" })).toBeInTheDocument();
     expect(within(dialog).getByRole("button", { name: "초기화" })).toBeInTheDocument();
   });
 
@@ -114,7 +114,7 @@ describe("홈 하단 관리 — HomeFooterActions (내 정보 수정·기준 출
   it("F8-AC-6: 왼쪽 버튼 '닫기'를 누르면 데이터와 이동 모두 변화가 없다", () => {
     renderActions();
     fireEvent.click(screen.getByRole("button", { name: /데이터 초기화/ }));
-    fireEvent.click(within(screen.getByRole("alertdialog")).getByRole("button", { name: "닫기" }));
+    fireEvent.click(within(screen.getByRole("alertdialog")).getByRole("button", { name: "취소" }));
     expect(screen.queryByRole("alertdialog")).toBeNull();
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(localStorage.getItem(KEYS.profiles)).not.toBeNull();

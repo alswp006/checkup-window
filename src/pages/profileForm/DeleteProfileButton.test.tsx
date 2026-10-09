@@ -37,7 +37,7 @@ describe("DeleteProfileButton", () => {
     render(<DeleteProfileButton name="엄마" onConfirm={onConfirm} />);
 
     fireEvent.click(screen.getByRole("button", { name: "삭제" }));
-    fireEvent.click(within(screen.getByRole("alertdialog")).getByRole("button", { name: "닫기" }));
+    fireEvent.click(within(screen.getByRole("alertdialog")).getByRole("button", { name: "취소" }));
 
     expect(onConfirm).not.toHaveBeenCalled();
     expect(screen.queryByRole("alertdialog")).toBeNull();
