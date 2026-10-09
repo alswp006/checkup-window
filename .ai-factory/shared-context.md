@@ -142,6 +142,8 @@ export type ProfileFormLocationState = { mode: 'self' | 'family' } | null;
   data/
     profileRepo.test.ts
     profileRepo.ts
+    recordRepo.test.ts
+    recordRepo.ts
     storage.test.ts
     storage.ts
   domain/
@@ -209,6 +211,7 @@ CRITICAL: Before creating any new function, type, or component, check the list a
 - 0005: 표시 문구·canToggle·마감 배너 판정 (순수 함수) (files: src/domain/format.ts, src/domain/banner.ts, src/domain/format.test.ts, src/domain/banner.test.ts)
 - 0006: localStorage 원시 함수 + 읽기 검증기 + newId (files: src/data/storage.ts, src/data/storage.test.ts)
 - 0007: 프로필 CRUD — profileRepo (files: src/data/profileRepo.ts, src/data/profileRepo.test.ts)
+- 0008: 수검 기록 토글·배너 닫기·전체 초기화 — recordRepo (files: src/data/recordRepo.ts, src/data/recordRepo.test.ts)
 
 ## Available exports from existing files
 // src/App.tsx
@@ -269,15 +272,17 @@ export function addProfile(snapshot: ProfileSnapshot, input: ProfileInput, now: 
 export function updateProfile(
 export function deleteProfile(snapshot: ProfileSnapshot, id: string): RepoResult {
 
+// src/data/recordRepo.ts
+export function pruneRecords(records: CheckupRecord[], thisYear: number): CheckupRecord[] {
+export function toggleRecord(
+export function dismissBanner(month: string): StoreResult {
+export function resetAll(): StoreResult {
+
 // src/data/storage.ts
 export const KEYS = {
 export function isProfileList(v: unknown, currentYear: number): boolean {
 export function isRecordList(v: unknown): boolean {
-export function readEnvelope<T = unknown>(
-export function writeJson(key: string, value: unknown): StoreResult {
-export function writeEnvelope(key: string, data: unknown[]): StoreResult {
-export function removeKeys(keys: readonly string[]): StoreResult {
-export function 
+export function read
 
 ## Memory Index (자동 학습 — 힌트로만 사용, 실제 코드 확인 필수)
 
