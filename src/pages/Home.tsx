@@ -37,12 +37,12 @@ export default function Home() {
 
   return (
     <ScreenScaffold
-      top={<Top title={<Top.TitleParagraph>Checkup Window</Top.TitleParagraph>} />}
+      top={<Top title={<Top.TitleParagraph>올해검진</Top.TitleParagraph>} />}
     >
       {/* 시각 앵커: 헤드라인 + 카드 내 진입 버튼(부유 금지, display="block" 전체폭).
           데이터 앱이면 value를 <Amount typography="t1" />(핵심 숫자)로 교체하라. */}
       <SummaryHero
-        label="Checkup Window"
+        label="올해검진"
         value={<Paragraph.Text typography="t2">올해 내가 받아야 할 국가 건강검진은? 출생연도만 넣으면 대상 여부와 12월 31일까지 남은 날을 알려줘요</Paragraph.Text>}
         caption="로그인 없이 바로 쓸 수 있어요"
         action={
