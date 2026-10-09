@@ -122,6 +122,7 @@ export type ProfileFormLocationState = { mode: 'self' | 'family' } | null;
 
 ## Existing Codebase (import and use these — do NOT recreate)
 ### File Tree (src/)
+  App.css
   App.tsx
   components/
     AdSlot.tsx
@@ -139,6 +140,7 @@ export type ProfileFormLocationState = { mode: 'self' | 'family' } | null;
     TossPurchase.tsx
     TossRewardAd.tsx
   hooks/
+  index.css
   lib/
     analytics.ts
     contract.ts
@@ -185,6 +187,7 @@ CRITICAL: Before creating any new function, type, or component, check the list a
 
 ## Already Implemented (do NOT duplicate or overwrite)
 - 0001: TypeScript 타입 + RouteState 계약 정의 (files: src/lib/types.ts)
+- 0002: 스캐폴드 CSS 정리 + 검수 기준선 + .env.example (files: src/index.css, src/App.css, docs/qa/compliance-baseline.md, .env.example)
 
 ## Available exports from existing files
 // src/App.tsx
