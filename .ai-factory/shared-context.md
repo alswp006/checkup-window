@@ -140,6 +140,8 @@ export type ProfileFormLocationState = { mode: 'self' | 'family' } | null;
     TossPurchase.tsx
     TossRewardAd.tsx
   data/
+    profileRepo.test.ts
+    profileRepo.ts
     storage.test.ts
     storage.ts
   domain/
@@ -206,6 +208,7 @@ CRITICAL: Before creating any new function, type, or component, check the list a
 - 0004: 판정 엔진 — buildPlan·evaluateAll·계획표/가족 문구 (files: src/domain/plan.ts, src/domain/plan.test.ts)
 - 0005: 표시 문구·canToggle·마감 배너 판정 (순수 함수) (files: src/domain/format.ts, src/domain/banner.ts, src/domain/format.test.ts, src/domain/banner.test.ts)
 - 0006: localStorage 원시 함수 + 읽기 검증기 + newId (files: src/data/storage.ts, src/data/storage.test.ts)
+- 0007: 프로필 CRUD — profileRepo (files: src/data/profileRepo.ts, src/data/profileRepo.test.ts)
 
 ## Available exports from existing files
 // src/App.tsx
@@ -257,6 +260,15 @@ export function TossPurchase({
 // src/components/TossRewardAd.tsx
 export function TossRewardAd({
 
+// src/data/profileRepo.ts
+export interface ProfileSnapshot {
+export type ProfileInput = Omit<Profile, "id" | "createdAt" | "updatedAt">;
+export type ProfilePatch = Partial<ProfileInput>;
+export interface RepoResult {
+export function addProfile(snapshot: ProfileSnapshot, input: ProfileInput, now: string): RepoResult {
+export function updateProfile(
+export function deleteProfile(snapshot: ProfileSnapshot, id: string): RepoResult {
+
 // src/data/storage.ts
 export const KEYS = {
 export function isProfileList(v: unknown, currentYear: number): boolean {
@@ -265,17 +277,7 @@ export function readEnvelope<T = unknown>(
 export function writeJson(key: string, value: unknown): StoreResult {
 export function writeEnvelope(key: string, data: unknown[]): StoreResult {
 export function removeKeys(keys: readonly string[]): StoreResult {
-export function readBanner(): BannerState {
-export function newId(): string {
-
-// src/domain/banner.ts
-export interface BannerView {
-export function bannerView(result: ProfileResult, bannerState: BannerState, today: Date): BannerView | null {
-
-// src/domain/checkup.ts
-export function isEvaluable(birthYear: number, today: Date): boolean {
-export function daysUntilYearEnd(today: Date): number {
-export function evaluateProfile(profile: Profile, recor
+export function 
 
 ## Memory Index (자동 학습 — 힌트로만 사용, 실제 코드 확인 필수)
 
