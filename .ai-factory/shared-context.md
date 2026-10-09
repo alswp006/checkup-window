@@ -208,6 +208,7 @@ export type ProfileFormLocationState = { mode: 'self' | 'family' } | null;
 - TossPurchase.tsx: TossPurchase
 - TossRewardAd.tsx: TossRewardAd
 - home/CheckupItemRow.tsx: CheckupItemRow
+- home/DeadlineBanner.tsx: DeadlineBanner
 - home/FreeTier.tsx: FreeTier
 CRITICAL: Before creating any new function, type, or component, check the list above. If something similar exists, import and use it.
 
@@ -223,6 +224,7 @@ CRITICAL: Before creating any new function, type, or component, check the list a
 - 0009: 상태 관리 — CheckupStoreProvider·useCheckupStore (files: src/data/CheckupStoreProvider.tsx, src/data/useCheckupStore.ts, src/data/CheckupStoreProvider.test.tsx, src/test/renderWithProviders.tsx)
 - 0013: 검진 항목 행 — CheckupItemRow (Switch·조건부 시트) (files: src/components/home/CheckupItemRow.tsx, src/components/home/CheckupItemRow.test.tsx)
 - 0014: 무료 층 — FreeTier (히어로·체크리스트·빈 상태·고지·공유) (files: src/components/home/FreeTier.tsx, src/components/home/FreeTier.test.tsx)
+- 0015: 하반기 마감 배너 — DeadlineBanner (files: src/components/home/DeadlineBanner.tsx, src/components/home/DeadlineBanner.test.tsx)
 
 ## Available exports from existing files
 // src/App.tsx
@@ -277,6 +279,9 @@ export function TossRewardAd({
 // src/components/home/CheckupItemRow.tsx
 export default function CheckupItemRow({ profileId, status, year, eligibleCount }: CheckupItemRowProps) {
 
+// src/components/home/DeadlineBanner.tsx
+export default function DeadlineBanner({ result, today }: DeadlineBannerProps) {
+
 // src/components/home/FreeTier.tsx
 export default function FreeTier({ result, profileId }: FreeTierProps) {
 
@@ -290,10 +295,7 @@ export type ProfilePatch = Partial<ProfileInput>;
 export interface RepoResult {
 export function addProfile(snapshot: ProfileSnapshot, input: ProfileInput, now: string): RepoResult {
 export function updateProfile(
-export function deleteProfile(snapshot: ProfileSnapshot, id: string): RepoResult {
-
-// src/data/recordRepo.ts
-export function pruneRecords(records: Che
+export function deleteProfi
 
 ## Memory Index (자동 학습 — 힌트로만 사용, 실제 코드 확인 필수)
 
