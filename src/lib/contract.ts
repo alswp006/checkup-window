@@ -8,7 +8,7 @@
 /** localStorage 항목 id 생성. 0007 addProfile 등에서 사용. (구현: 패킷 0006) */
 export type newIdFn = () => string;
 
-/** 키 3개 삭제. removeItem 예외는 throw하지 않고 { ok: false }로 반환. 실패 시 console.error 없음. 0009 액션 및 0017 초기화에서 사용. (구현: 패킷 0008) */
+/** 키 3개 삭제. removeItem 예외는 throw하지 않고 { ok: false }로 반환. 실패 시 로그를 남기지 않는다. 0009 액션 및 0017 초기화에서 사용. (구현: 패킷 0008) */
 export type resetAllFn = () => { ok: boolean };
 
 /** isEvaluable이 false인 가족 이름으로 만든 안내 문구. 반환은 문자열로 가정. 0016·0018에서 사용. (구현: 패킷 0004) */

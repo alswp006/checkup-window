@@ -33,7 +33,7 @@ export function dismissBanner(month: string): StoreResult {
   return writeJson(KEYS.banner, { dismissedMonth: month });
 }
 
-/** 키 3개를 지운다. removeItem 예외는 { ok: false }로 바꾸고 throw·console.error 없음. */
+/** 키 3개를 지운다. removeItem 예외는 { ok: false }로 바꾸고 throw하지 않는다. */
 export function resetAll(): StoreResult {
   return removeKeys([KEYS.profiles, KEYS.records, KEYS.banner]);
 }
