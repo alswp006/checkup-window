@@ -209,7 +209,10 @@ export type ProfileFormLocationState = { mode: 'self' | 'family' } | null;
 - TossRewardAd.tsx: TossRewardAd
 - home/CheckupItemRow.tsx: CheckupItemRow
 - home/DeadlineBanner.tsx: DeadlineBanner
+- home/FamilyChecklistSheet.tsx: FamilyChecklistSheet
+- home/FamilyTeaser.tsx: FamilyTeaser
 - home/FreeTier.tsx: FreeTier
+- home/LockedTier.tsx: LockedTier
 CRITICAL: Before creating any new function, type, or component, check the list above. If something similar exists, import and use it.
 
 ## Already Implemented (do NOT duplicate or overwrite)
@@ -225,6 +228,7 @@ CRITICAL: Before creating any new function, type, or component, check the list a
 - 0013: 검진 항목 행 — CheckupItemRow (Switch·조건부 시트) (files: src/components/home/CheckupItemRow.tsx, src/components/home/CheckupItemRow.test.tsx)
 - 0014: 무료 층 — FreeTier (히어로·체크리스트·빈 상태·고지·공유) (files: src/components/home/FreeTier.tsx, src/components/home/FreeTier.test.tsx)
 - 0015: 하반기 마감 배너 — DeadlineBanner (files: src/components/home/DeadlineBanner.tsx, src/components/home/DeadlineBanner.test.tsx)
+- 0016: 잠금 층 — LockedTier(3개년 계획·가족 결과) + FamilyTeaser + FamilyChecklistSheet (files: src/components/home/LockedTier.tsx, src/components/home/FamilyTeaser.tsx, src/components/home/FamilyChecklistSheet.tsx, src/components/home/LockedTier.test.tsx, src/components/home/FamilyChecklistSheet.test.tsx)
 
 ## Available exports from existing files
 // src/App.tsx
@@ -282,20 +286,20 @@ export default function CheckupItemRow({ profileId, status, year, eligibleCount 
 // src/components/home/DeadlineBanner.tsx
 export default function DeadlineBanner({ result, today }: DeadlineBannerProps) {
 
+// src/components/home/FamilyChecklistSheet.tsx
+export default function FamilyChecklistSheet({ profileId, onClose }: FamilyChecklistSheetProps) {
+
+// src/components/home/FamilyTeaser.tsx
+export default function FamilyTeaser({ family }: FamilyTeaserProps) {
+
 // src/components/home/FreeTier.tsx
 export default function FreeTier({ result, profileId }: FreeTierProps) {
 
-// src/data/CheckupStoreProvider.tsx
-export function CheckupStoreProvider({ children }: { children: ReactNode }) {
+// src/components/home/LockedTier.tsx
+export default function LockedTier({ self, family, familyResults }: LockedTierProps) {
 
-// src/data/profileRepo.ts
-export interface ProfileSnapshot {
-export type ProfileInput = Omit<Profile, "id" | "createdAt" | "updatedAt">;
-export type ProfilePatch = Partial<ProfileInput>;
-export interface RepoResult {
-export function addProfile(snapshot: ProfileSnapshot, input: ProfileInput, now: string): RepoResult {
-export function updateProfile(
-export function deleteProfi
+// src/data/CheckupStoreProvider.tsx
+export function CheckupStoreProvider({ children }: { children: ReactNode 
 
 ## Memory Index (자동 학습 — 힌트로만 사용, 실제 코드 확인 필수)
 
