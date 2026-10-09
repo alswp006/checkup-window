@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { Loader, Paragraph, Spacing, Top, useToast } from "@toss/tds-mobile";
-import { ScreenScaffold } from "@/components/ScreenScaffold";
+import { FormInset, ScreenScaffold } from "@/components/ScreenScaffold";
 import { SubmitFooter } from "@/components/BottomCTA";
 import { useCheckupStore } from "@/data/useCheckupStore";
 import { logClick } from "@/lib/analytics";
@@ -12,6 +12,7 @@ import { FAMILY_LIMIT, validateProfileForm } from "@/pages/profileForm/validate"
 import type { ProfileFormErrors, ProfileFormValues } from "@/pages/profileForm/validate";
 
 const TITLE = <Top.TitleParagraph>올해검진</Top.TitleParagraph>;
+const NEW_TITLE = <Top.TitleParagraph>프로필 입력</Top.TitleParagraph>;
 const SELF_NAME = "나";
 
 const FAILURE_TOAST: Record<Extract<StoreResult, { ok: false }>["error"], string> = {
@@ -137,7 +138,8 @@ export default function ProfileForm() {
 
   return (
     <ScreenScaffold
-      top={<Top title={TITLE} />}
+      flush
+      top={<Top title={editing ? TITLE : NEW_TITLE} />}
       bottom={
         <SubmitFooter
           label={editing ? "저장" : "결과 보기"}
@@ -147,16 +149,22 @@ export default function ProfileForm() {
         />
       }
     >
-      <Paragraph.Text typography="t5">{subtitle}</Paragraph.Text>
-      <Spacing size={16} />
-      <ProfileFormFields values={values} onChange={setDraft} errors={errors} />
-      {editing && editing.role === "family" && (
-        <>
-          <Spacing size={24} />
-          <DeleteProfileButton name={editing.name} onConfirm={remove} />
-        </>
-      )}
-      <Spacing size={96} />
+      <>
+        <FormInset>
+          <Paragraph.Text typography="t5">{subtitle}</Paragraph.Text>
+        </FormInset>
+        <Spacing size={16} />
+        <ProfileFormFields values={values} onChange={setDraft} errors={errors} />
+        {editing && editing.role === "family" && (
+          <>
+            <Spacing size={24} />
+            <FormInset>
+              <DeleteProfileButton name={editing.name} onConfirm={remove} />
+            </FormInset>
+          </>
+        )}
+        <Spacing size={120} />
+      </>
     </ScreenScaffold>
   );
 }

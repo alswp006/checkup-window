@@ -18,7 +18,10 @@ export function ScreenScaffold({
   top,
   children,
   bottom,
+  flush,
 }: {
+  /** 본문 좌우 패딩을 없앤다 — TDS 행·입력칸의 내장 24px가 Top 제목과 같은 줄에 서야 하는 폼용. TDS 밖 요소는 FormInset으로 감싼다. */
+  flush?: boolean;
   top?: ReactNode;
   children: ReactNode;
   bottom?: ReactNode;
@@ -26,8 +29,13 @@ export function ScreenScaffold({
   return (
     <PageShell style={top ? { paddingTop: 0 } : undefined}>
       {top}
-      <div style={{ padding: "16px 16px 0" }}>{children}</div>
+      <div style={{ padding: flush ? "16px 0 0" : "16px 16px 0" }}>{children}</div>
       {bottom}
     </PageShell>
   );
+}
+
+/** flush 본문 안에서 TDS 밖 요소(라벨·칩·캡션)를 TDS 내장 좌우 여백(24px)에 맞춘다. */
+export function FormInset({ children }: { children: ReactNode }) {
+  return <div style={{ padding: "0 24px" }}>{children}</div>;
 }
