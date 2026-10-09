@@ -212,6 +212,7 @@ export type ProfileFormLocationState = { mode: 'self' | 'family' } | null;
 - home/FamilyChecklistSheet.tsx: FamilyChecklistSheet
 - home/FamilyTeaser.tsx: FamilyTeaser
 - home/FreeTier.tsx: FreeTier
+- home/HomeFooterActions.tsx: HomeFooterActions
 - home/LockedTier.tsx: LockedTier
 CRITICAL: Before creating any new function, type, or component, check the list above. If something similar exists, import and use it.
 
@@ -229,6 +230,7 @@ CRITICAL: Before creating any new function, type, or component, check the list a
 - 0014: 무료 층 — FreeTier (히어로·체크리스트·빈 상태·고지·공유) (files: src/components/home/FreeTier.tsx, src/components/home/FreeTier.test.tsx)
 - 0015: 하반기 마감 배너 — DeadlineBanner (files: src/components/home/DeadlineBanner.tsx, src/components/home/DeadlineBanner.test.tsx)
 - 0016: 잠금 층 — LockedTier(3개년 계획·가족 결과) + FamilyTeaser + FamilyChecklistSheet (files: src/components/home/LockedTier.tsx, src/components/home/FamilyTeaser.tsx, src/components/home/FamilyChecklistSheet.tsx, src/components/home/LockedTier.test.tsx, src/components/home/FamilyChecklistSheet.test.tsx)
+- 0017: 홈 하단 관리 — HomeFooterActions (내 정보 수정·기준 출처·초기화) (files: src/components/home/HomeFooterActions.tsx, src/components/home/HomeFooterActions.test.tsx)
 
 ## Available exports from existing files
 // src/App.tsx
@@ -295,11 +297,11 @@ export default function FamilyTeaser({ family }: FamilyTeaserProps) {
 // src/components/home/FreeTier.tsx
 export default function FreeTier({ result, profileId }: FreeTierProps) {
 
-// src/components/home/LockedTier.tsx
-export default function LockedTier({ self, family, familyResults }: LockedTierProps) {
+// src/components/home/HomeFooterActions.tsx
+export default function HomeFooterActions({ selfId }: HomeFooterActionsProps) {
 
-// src/data/CheckupStoreProvider.tsx
-export function CheckupStoreProvider({ children }: { children: ReactNode 
+// src/components/home/LockedTier.tsx
+export default function LockedTier({ self, family, familyResults }: Lock
 
 ## Memory Index (자동 학습 — 힌트로만 사용, 실제 코드 확인 필수)
 
