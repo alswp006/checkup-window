@@ -16,7 +16,7 @@
 /** localStorage 항목 id 생성. 0007 addProfile 등에서 사용. (구현: 패킷 0006) */
 export type newIdFn = () => string;
 
-/** 키 3개 삭제. removeItem 예외는 throw하지 않고 { ok: false }로 반환. 실패 시 console.error 없음. 0009 액션 및 0017 초기화에서 사용. (구현: 패킷 0008) */
+/** 키 3개 삭제. removeItem 예외는 throw하지 않고 { ok: false }로 반환. 실패 시 로그를 남기지 않는다. 0009 액션 및 0017 초기화에서 사용. (구현: 패킷 0008) */
 export type resetAllFn = () => { ok: boolean };
 
 /** isEvaluable이 false인 가족 이름으로 만든 안내 문구. 반환은 문자열로 가정. 0016·0018에서 사용. (구현: 패킷 0004) */
@@ -207,7 +207,7 @@ export type ProfileFormLocationState = { mode: 'self' | 'family' } | null;
 - FloatingTabBar.tsx: FloatingTabBar
 - MiniBar.tsx: MiniBar
 - PageShell.tsx: PageShell
-- ScreenScaffold.tsx: ScreenScaffold
+- ScreenScaffold.tsx: ScreenScaffold, FormInset
 - Sparkline.tsx: Sparkline
 - StateView.tsx: EmptyState, LoadingState
 - SummaryHero.tsx: SummaryHero
@@ -230,9 +230,8 @@ export type ProfileFormLocationState = { mode: 'self' | 'family' } | null;
   pages/home/useHomeBootstrap.ts → imports: data/useCheckupStore, domain/plan, domain/checkup, lib/types
   pages/profileForm/DeleteProfileButton.test.tsx → imports: __tests__/__helpers__/mocks, pages/profileForm/DeleteProfileButton
   pages/profileForm/ProfileFormFields.test.tsx → imports: __tests__/__helpers__/mocks, pages/profileForm/ProfileFormFields, pages/profileForm/validate
-  pages/profileForm/ProfileFormFields.tsx → imports: domain/rules, lib/types
-  pages/profileForm/validate.test.ts → imports: pages/profileForm/validate
-  pages/profileF...
+  pages/profileForm/ProfileFormFields.tsx → imports: components/ScreenScaffold, domain/rules, lib/types
+  pages/profileForm/validate.test.ts → imports: pages...
 CRITICAL: Before creating any new function, type, or component, check the list above. If something similar exists, import and use it.
 
 ## Already Implemented (do NOT duplicate or overwrite)
@@ -245,16 +244,17 @@ CRITICAL: Before creating any new function, type, or component, check the list a
 - 0007: 프로필 CRUD — profileRepo (files: src/data/profileRepo.ts, src/data/profileRepo.test.ts)
 - 0008: 수검 기록 토글·배너 닫기·전체 초기화 — recordRepo (files: src/data/recordRepo.ts, src/data/recordRepo.test.ts)
 - 0009: 상태 관리 — CheckupStoreProvider·useCheckupStore (files: src/data/CheckupStoreProvider.tsx, src/data/useCheckupStore.ts, src/data/CheckupStoreProvider.test.tsx, src/test/renderWithProviders.tsx)
+- 0010: 프로필 폼 본문 — ProfileFormFields + validate (files: src/pages/profileForm/validate.ts, src/pages/profileForm/validate.test.ts, src/pages/profileForm/ProfileFormFields.tsx, src/pages/profileForm/ProfileFormFields.test.tsx)
+- 0011: 프로필 입력·수정 화면 — ProfileForm + DeleteProfileButton (files: src/pages/ProfileForm.tsx, src/pages/ProfileForm.test.tsx, src/pages/profileForm/DeleteProfileButton.tsx, src/pages/profileForm/DeleteProfileButton.test.tsx)
+- 0012: 홈 부트스트랩 훅 — useHomeBootstrap (files: src/pages/home/useHomeBootstrap.ts, src/pages/home/useHomeBootstrap.test.tsx)
 - 0013: 검진 항목 행 — CheckupItemRow (Switch·조건부 시트) (files: src/components/home/CheckupItemRow.tsx, src/components/home/CheckupItemRow.test.tsx)
 - 0014: 무료 층 — FreeTier (히어로·체크리스트·빈 상태·고지·공유) (files: src/components/home/FreeTier.tsx, src/components/home/FreeTier.test.tsx)
 - 0015: 하반기 마감 배너 — DeadlineBanner (files: src/components/home/DeadlineBanner.tsx, src/components/home/DeadlineBanner.test.tsx)
 - 0016: 잠금 층 — LockedTier(3개년 계획·가족 결과) + FamilyTeaser + FamilyChecklistSheet (files: src/components/home/LockedTier.tsx, src/components/home/FamilyTeaser.tsx, src/components/home/FamilyChecklistSheet.tsx, src/components/home/LockedTier.test.tsx, src/components/home/FamilyChecklistSheet.test.tsx)
 - 0017: 홈 하단 관리 — HomeFooterActions (내 정보 수정·기준 출처·초기화) (files: src/components/home/HomeFooterActions.tsx, src/components/home/HomeFooterActions.test.tsx)
-- 0012: 홈 부트스트랩 훅 — useHomeBootstrap (files: src/pages/home/useHomeBootstrap.ts, src/pages/home/useHomeBootstrap.test.tsx)
 - 0018: 홈 화면 조립 — Home (/) (files: src/pages/Home.tsx, src/pages/Home.test.tsx)
-- 0010: 프로필 폼 본문 — ProfileFormFields + validate (files: src/pages/profileForm/validate.ts, src/pages/profileForm/validate.test.ts, src/pages/profileForm/ProfileFormFields.tsx, src/pages/profileForm/ProfileFormFields.test.tsx)
-- 0011: 프로필 입력·수정 화면 — ProfileForm + DeleteProfileButton (files: src/pages/ProfileForm.tsx, src/pages/ProfileForm.test.tsx, src/pages/profileForm/DeleteProfileButton.tsx, src/pages/profileForm/DeleteProfileButton.test.tsx)
 - 0019: 라우팅 연결 + 전역 Provider 배선 + 종단 시나리오 (App.tsx 단일 소유) (files: src/App.tsx, src/App.test.tsx, src/__tests__/e2e.flow.test.tsx)
+- 0020: 검수 정적 검사 + 릴리스 광고 env 검사 + 터치 영역 QA 문서 (소스 수정 없음) (files: src/__tests__/compliance.test.ts, scripts/check-release-env.mjs, src/__tests__/releaseEnv.test.ts, package.json, docs/qa/touch-targets.md)
 
 ## Available exports from existing files
 // src/App.tsx
@@ -288,6 +288,7 @@ export function PageShell({
 
 // src/components/ScreenScaffold.tsx
 export function ScreenScaffold({
+export function FormInset({ children }: { children: ReactNode }) {
 
 // src/components/Sparkline.tsx
 export function Sparkline({
@@ -306,14 +307,8 @@ export function TossPurchase({
 // src/components/TossRewardAd.tsx
 export function TossRewardAd({
 
-// src/components/home/CheckupItemRow.tsx
-export default function CheckupItemRow({ profileId, status, year, eligibleCount }: CheckupItemRowProps) {
-
 // src/components/home/DeadlineBanner.tsx
 export default function DeadlineBanner({ result, today }: DeadlineBannerProps) {
-
-// src/components/home/FamilyChecklistSheet.tsx
-export default function FamilyChecklistSheet({ profileId, onClose }: FamilyChecklistSheetProps) {
 
 // src/components/home/FamilyTeaser.tsx
 export default function FamilyTeaser({ family }: FamilyTeaserProps) {
@@ -321,11 +316,18 @@ export default function FamilyTeaser({ family }: FamilyTeaserProps) {
 // src/components/home/FreeTier.tsx
 export default function FreeTier({ result, profileId }: FreeTierProps) {
 
-// src/components/home/HomeFooterActions.tsx
-export default function HomeFooterActions({ selfId }: HomeFooterActionsProps) {
-
 // src/components/home/LockedTier.tsx
-export default function LockedTier({ self, family, familyResults }: Lock
+export default function LockedTier({ self, family, familyResults }: LockedTierProps) {
+
+// src/data/CheckupStoreProvider.tsx
+export function CheckupStoreProvider({ children }: { children: ReactNode }) {
+
+// src/data/profileRepo.ts
+export interface ProfileSnapshot {
+export type ProfileInput = Omit<Profile, "id" | "createdAt" | "updatedAt">;
+export type ProfilePatch = Partial<ProfileInput>;
+export interface RepoResult {
+expor
 
 ## Memory Index (자동 학습 — 힌트로만 사용, 실제 코드 확인 필수)
 

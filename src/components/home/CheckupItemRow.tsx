@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { generateHapticFeedback } from "@apps-in-toss/web-framework";
-import { BottomSheet, Badge, Button, ListRow, Paragraph, Spacing, Switch, useToast } from "@toss/tds-mobile";
+import { BottomSheet, Badge, ListRow, Paragraph, Spacing, Switch, useToast } from "@toss/tds-mobile";
 import { useCheckupStore } from "@/data/useCheckupStore";
 import { CHECKUP_RULES } from "@/domain/rules";
 import { canToggle, itemDescription } from "@/domain/format";
@@ -69,16 +69,13 @@ export default function CheckupItemRow({ profileId, status, year, eligibleCount 
           open={sheetOpen}
           onClose={() => setSheetOpen(false)}
           header={<BottomSheet.Header>{status.label}</BottomSheet.Header>}
+          cta={<BottomSheet.CTA onClick={() => setSheetOpen(false)}>닫기</BottomSheet.CTA>}
         >
           <Paragraph.Text typography="t6">{rule.conditionText}</Paragraph.Text>
           <Spacing size={8} />
           <Paragraph.Text typography="t7" color="var(--adaptiveGrey600)">
             출처: {rule.source}
           </Paragraph.Text>
-          <Spacing size={16} />
-          <Button display="block" variant="weak" onClick={() => setSheetOpen(false)}>
-            닫기
-          </Button>
         </BottomSheet>
       )}
     </>

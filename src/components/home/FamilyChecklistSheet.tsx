@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { generateHapticFeedback } from "@apps-in-toss/web-framework";
-import { BottomSheet, Button, Spacing } from "@toss/tds-mobile";
+import { BottomSheet } from "@toss/tds-mobile";
 import CheckupItemRow from "@/components/home/CheckupItemRow";
 import { useCheckupStore } from "@/data/useCheckupStore";
 import { evaluateProfile, isEvaluable } from "@/domain/checkup";
@@ -40,7 +40,12 @@ export default function FamilyChecklistSheet({ profileId, onClose }: FamilyCheck
   };
 
   return (
-    <BottomSheet open onClose={onClose} header={<BottomSheet.Header>{profile.name}</BottomSheet.Header>}>
+    <BottomSheet
+      open
+      onClose={onClose}
+      header={<BottomSheet.Header>{profile.name}</BottomSheet.Header>}
+      cta={<BottomSheet.CTA onClick={edit}>정보 수정</BottomSheet.CTA>}
+    >
       {result.items.map((item) => (
         <CheckupItemRow
           key={item.itemId}
@@ -50,10 +55,6 @@ export default function FamilyChecklistSheet({ profileId, onClose }: FamilyCheck
           eligibleCount={result.eligibleCount}
         />
       ))}
-      <Spacing size={16} />
-      <Button display="block" variant="weak" onClick={edit}>
-        정보 수정
-      </Button>
     </BottomSheet>
   );
 }

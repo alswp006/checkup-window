@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { generateHapticFeedback } from "@apps-in-toss/web-framework";
-import { BottomSheet, Button, ConfirmDialog, ListRow, Spacing, useToast } from "@toss/tds-mobile";
+import { BottomSheet, ConfirmDialog, ListRow, useToast } from "@toss/tds-mobile";
 import { useCheckupStore } from "@/data/useCheckupStore";
 import { CHECKUP_RULES, formatRuleLine } from "@/domain/rules";
 import { logClick } from "@/lib/analytics";
@@ -63,6 +63,7 @@ export default function HomeFooterActions({ selfId }: HomeFooterActionsProps) {
         open={ruleOpen}
         onClose={() => setRuleOpen(false)}
         header={<BottomSheet.Header>검진 기준과 출처</BottomSheet.Header>}
+        cta={<BottomSheet.CTA onClick={() => setRuleOpen(false)}>닫기</BottomSheet.CTA>}
       >
         {CHECKUP_RULES.map((rule) => (
           <ListRow
@@ -70,10 +71,6 @@ export default function HomeFooterActions({ selfId }: HomeFooterActionsProps) {
             contents={<ListRow.Texts type="2RowTypeA" top={rule.label} bottom={formatRuleLine(rule.id)} />}
           />
         ))}
-        <Spacing size={16} />
-        <Button display="block" variant="weak" onClick={() => setRuleOpen(false)}>
-          닫기
-        </Button>
       </BottomSheet>
 
       <ConfirmDialog
